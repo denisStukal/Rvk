@@ -1,0 +1,14 @@
+Package: Rvk
+Title: Access to VK (VKontakte) API through R
+Description: Provides an interface to the VK (VKontakte) API.
+Version: 0.0.0.9000
+Date: 2017-06-05
+Author: Denis Stukal <denis.stukal@nyu.edu>
+Maintainer: Denis Stukal <denis.stukal@nyu.edu>
+URL: https://github.com/denisStukal/Rvk
+Imports: jsonlite (>= 1.4)
+Depends: R (>= 3.4.0)
+License: GPL-2
+NeedsCompilation: no
+Built: R 3.4.0; ; 2017-06-05; x86_64-apple-darwin15.6.0
+RoxygenNote: 6.0.1
