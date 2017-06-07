@@ -148,7 +148,7 @@ getUserInfo <- function(user_ids, access_token, num_universities = 1, num_school
     if ('career' %in% names(items) ) {
       output$number_jobs <- nrow(items$career[[1]])
       jobs <- items$career[[1]]
-      if (length(nrow(school)) > 0) {
+      if (length(nrow(jobs)) > 0) {
         jobs <- jobs[order(jobs$from, decreasing = T),]
         output$job_last <- jobs$company[1]
         output$job_last_start_year <- jobs$from[1]
@@ -1025,6 +1025,8 @@ getGroupPostReposts <- function(group_id, post_id, access_token) {
 # Check: date and date_POSIXct
 # Check: all functions return a data.frame with (if AAA %in% names(items)) check
 # Why user_idS in getUserInfo?
+
+# getUserInfo - not more than 49 users
 
 # Add:
 # wall.search: search post on a wall by a criterion
