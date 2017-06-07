@@ -26,7 +26,7 @@ makeAccessToken <- function(token_file_name) {
 
 #----------------- USER -----------------#
 getUserInfo <- function(user_ids, access_token, num_universities = 1, num_schools = 1, num_jobs = 1) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/users.get?user_id=', user_ids,'&fields=photo_id,verified,sex,bdate,city,country,home_town,has_photo,photo_100,has_mobile,contacts,site,education,universities,schools,status,last_seen,followers_count,common_count,occupation,relatives,relation,personal,connections,wall_comments,activities,interests,music,movies,tv,books,games,about,quotes,timezone,screen_name,maiden_name,is_friend,friend_status,career,military&v=5.64&access_token=', access_token))
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/users.get?user_ids=', user_ids,'&fields=photo_id,verified,sex,bdate,city,country,home_town,has_photo,photo_100,has_mobile,contacts,site,education,universities,schools,status,last_seen,followers_count,common_count,occupation,relatives,relation,personal,connections,wall_comments,activities,interests,music,movies,tv,books,games,about,quotes,timezone,screen_name,maiden_name,is_friend,friend_status,career,military&v=5.64&access_token=', access_token))
   if ('error' %in% names(fetched)) {
     cat('ERROR: ', fetched$error$error_msg, '\n')
     return(NULL)
@@ -664,12 +664,6 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
 }
 
 
-# getUserPostLikes
-# 
-# getUserPostCommentLikes
-
-
-
 #----------------- GROUPS -----------------#
 getGroupMembers <- function(group_id, access_token, num_universities = 1, num_schools = 1, num_jobs = 1, count = 1000) {
   fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/groups.getMembers?group_id=', group_id,'&fields=sex,bdate,city,country,photo_100,lists,domain,has_mobile,contacts,connections,site,education,universities,schools,career,can_see_all_posts,status,last_seen,common_count,relation,relatives&v=5.64&access_token=', access_token))
@@ -1031,4 +1025,10 @@ getGroupPostReposts <- function(group_id, post_id, access_token) {
 # Check: date and date_POSIXct
 # Check: all functions return a data.frame with (if AAA %in% names(items)) check
 # Why user_idS in getUserInfo?
+
+# Add:
+# wall.search: search post on a wall by a criterion
+# groups.isMember
+# getUserPostLikes: likes.getList
+# getUserPostCommentLikes
 
