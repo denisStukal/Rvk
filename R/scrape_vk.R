@@ -85,11 +85,28 @@ getUserInfo <- function(user_ids, access_token, num_universities = 1, num_school
       output$number_universities <- nrow(items$universities[[1]])
       univ <- items$universities[[1]]
       if (length(nrow(univ)) > 0) {
-        univ <- univ[order(univ$graduation, decreasing = T),]
-        output$university_last <- univ$name[1]
-        output$university_last_graduation <- univ$graduation[1]
-        output$university_last_department <- univ$faculty_name[1]
-        output$university_last_degree <- univ$education_status[1]
+        # check if graduation is available
+        if ('graduation' %in% names(univ)) {
+          univ <- univ[order(univ$graduation, decreasing = T),]
+          output$university_last_graduation <- univ$graduation[1]
+        } else {
+          output$university_last_graduation <- NA
+        }
+        if ('name' %in% names(univ)) {
+          output$university_last <- univ$name[1]
+        } else {
+          output$university_last <- NA
+        }
+        if ('faculty_name' %in% names(univ)) {
+          output$university_last_department <- univ$faculty_name[1]
+        } else {
+          output$university_last_department <- NA
+        }
+        if ('education_status' %in% names(univ)) {
+          output$university_last_degree <- univ$education_status[1]
+        } else {
+          output$university_last_degree <- NA
+        }
         if (num_universities > 1) {
           for (i in 2:num_universities) {
             output[[paste0('university_', i, 'tolast_graduation')]] <- univ$graduation[i]
@@ -115,12 +132,33 @@ getUserInfo <- function(user_ids, access_token, num_universities = 1, num_school
       output$number_schools <- nrow(items$schools[[1]])
       school <- items$schools[[1]]
       if (length(nrow(school)) > 0) {
-        school <- school[order(school$year_to, decreasing = T),]
-        output$school_last <- school$name[1]
-        output$school_last_from_year <- school$year_from[1]
-        output$school_last_to_year <- school$year_to[1]
-        output$school_last_country <- school$country[1]
-        output$school_last_city <- school$city[1]
+        # check of year_to is in school
+        if ('year_to' %in% names(school)) {
+          school <- school[order(school$year_to, decreasing = T),]
+          output$school_last_to_year <- school$year_to[1]
+        } else {
+          output$school_last_to_year <- NA
+        }
+        if ('name' %in% names(school)) {
+          output$school_last <- school$name[1]
+        } else {
+          output$school_last <- NA
+        }
+        if ('year_from' %in% names(school)) {
+          output$school_last_from_year <- school$year_from[1]
+        } else {
+          output$school_last_from_year <- NA
+        }
+        if ('country' %in% names(school)) {
+          output$school_last_country <- school$country[1]
+        } else {
+          output$school_last_country <- NA
+        }
+        if ('city' %in% names(school)) {
+          output$school_last_city <- school$city[1]
+        } else {
+          output$school_last_city <- NA
+        }
         if (num_schools > 1) {
           for (i in 2:num_schools) {
             output[[paste0('school_', i, 'tolast_from_year')]] <- school$year_from[i]
@@ -145,17 +183,42 @@ getUserInfo <- function(user_ids, access_token, num_universities = 1, num_school
         }
       }
     }
+    
     if ('career' %in% names(items) ) {
       output$number_jobs <- nrow(items$career[[1]])
       jobs <- items$career[[1]]
       if (length(nrow(jobs)) > 0) {
-        jobs <- jobs[order(jobs$from, decreasing = T),]
-        output$job_last <- jobs$company[1]
-        output$job_last_start_year <- jobs$from[1]
-        output$job_last_end_year <- jobs$until[1]
-        output$job_last_position <- jobs$position[1]
-        output$job_last_city <- jobs$city_id[1]
-        output$job_last_country <- jobs$country_id[1]
+        if ('from' %in% names(jobs)) {
+          jobs <- jobs[order(jobs$from, decreasing = T),]
+          output$job_last_start_year <- jobs$from[1]
+        } else {
+          output$job_last_start_year <- NA
+        }
+        if ('until' %in% names(jobs)) {
+          output$job_last_end_year <- jobs$until[1]
+        } else {
+          output$job_last_end_year <- NA
+        }
+        if ('company' %in% names(jobs)) {
+          output$job_last <- jobs$company[1]
+        } else {
+          output$job_last <- NA
+        }
+        if ('position' %in% names(jobs)) {
+          output$job_last_position <- jobs$position[1]
+        } else {
+          output$job_last_position <- NA
+        }
+        if ('city_id' %in% names(jobs)) {
+          output$job_last_city <- jobs$city_id[1]
+        } else {
+          output$job_last_city <- NA
+        }
+        if ('country_id' %in% names(jobs)) {
+          output$job_last_country <- jobs$country_id[1]
+        } else {
+          output$job_last_country <- NA
+        }
         if (num_jobs > 1) {
           for (i in 2:num_jobs) {
             output[[paste0('job_', i, 'tolast_start_year')]] <- jobs$from[i]
