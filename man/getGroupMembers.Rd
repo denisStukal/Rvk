@@ -16,7 +16,7 @@ Returns a data.frame with publicly available information on members of a VK grou
 
 
 \usage{
-getGroupMembers(group_id, access_token, num_universities = 1, \cr num_schools = 1, num_jobs = 1, count = 1000)
+getGroupMembers(group_id, access_token, num_universities = 1, num_schools = 1, num_jobs = 1, count = 1000)
 }
 
 

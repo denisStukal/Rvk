@@ -15,7 +15,7 @@ Returns a data.frame with publicly available information about followers of a us
 
 
 \usage{
-getUserFollowersInfo(user_id, access_token, num_universities = 1, \cr num_schools = 1, num_jobs = 1)
+getUserFollowersInfo(user_id, access_token, num_universities = 1, num_schools = 1, num_jobs = 1)
 }
 
 

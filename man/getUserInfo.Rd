@@ -15,12 +15,12 @@ Returns a data.frame with publicly available information about a user.
 
 
 \usage{
-getUserInfo(user_ids, access_token, num_universities = 1, \cr num_schools = 1, num_jobs = 1)
+getUserInfo(user_ids, access_token, num_universities = 1, num_schools = 1, num_jobs = 1)
 }
 
 
 \arguments{
-  \item{user_id}{A numeric user ID. Available from the user's page (see Details).}
+  \item{user_ids}{A numeric user ID. Available from the user's page (see Details).}
   \item{access_token}{ Your access token (see ?makeAccessToken). }
   \item{num_universities}{Number of universities to be returned (default is 1). See Details.}
   \item{num_schools}{Number of schools to be returned (default is 1). See Details.}

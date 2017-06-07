@@ -10,5 +10,4 @@ Imports: jsonlite (>= 1.4)
 Depends: R (>= 3.4.0)
 License: GPL-2
 NeedsCompilation: no
-Built: R 3.4.0; ; 2017-06-05; x86_64-apple-darwin15.6.0
 RoxygenNote: 6.0.1

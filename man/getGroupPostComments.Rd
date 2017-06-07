@@ -15,7 +15,7 @@ Returns a data.frame with publicly available information about comments to a pos
 
 
 \usage{
-getGroupPostComments(user_id, post_id, access_token)
+getGroupPostComments(group_id, post_id, access_token)
 }
 
 

@@ -1030,5 +1030,5 @@ getGroupPostReposts <- function(group_id, post_id, access_token) {
 
 # Check: date and date_POSIXct
 # Check: all functions return a data.frame with (if AAA %in% names(items)) check
-
+# Why user_idS in getUserInfo?
 
