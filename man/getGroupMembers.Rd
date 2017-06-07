@@ -16,7 +16,9 @@ Returns a data.frame with publicly available information on members of a VK grou
 
 
 \usage{
-getGroupMembers(group_id, access_token, num_universities = 1, num_schools = 1, num_jobs = 1, count = 1000)
+getGroupMembers(group_id, access_token, 
+    num_universities = 1,  num_schools = 1, num_jobs = 1, 
+    count = 1000)
 }
 
 
@@ -56,7 +58,8 @@ Denis Stukal \url{denis.stukal@nyu.edu}
 \dontrun{
 mytoken = 'XXXXXXXXXXXXXX'
 groupid = AAAAAAAA
-dat <- getGroupMembers(group_id = groupid, access_token = mytoken, num_universities = 3, num_schools = 2, num_jobs = 4)
+dat <- getGroupMembers(group_id = groupid, access_token = mytoken, 
+    num_universities = 3, num_schools = 2, num_jobs = 4)
 str(dat)
 }
 }

@@ -30,4 +30,4 @@ VK API: Open API (\url{https://vk.com/dev/openapi})
 
 \keyword{ package }
 
-\examples{}
+

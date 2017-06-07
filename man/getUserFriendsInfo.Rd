@@ -15,7 +15,8 @@ Returns a data.frame with publicly available information about friends of a user
 
 
 \usage{
-getUserFriendsInfo(user_id, access_token, num_universities = 1, num_schools = 1, num_jobs = 1)
+getUserFriendsInfo(user_id, access_token, 
+    num_universities = 1, num_schools = 1, num_jobs = 1)
 }
 
 
@@ -46,7 +47,7 @@ A data.frame with columns (can vary due to information availability):
 \item{bdate}{Friend's birth date}
 \item{city}{City code the friend specified in the "Contacts" section}
 \item{country}{Country code the friend specified in the "Contacts" section}
-\item{relation}{Friend's relationship status (1 – single; 2 – in a relationship; 3 – engaged; 4 – married; 5 – it's complicated; 6 – actively searching; 7 – in love; 8 — in a civil union; 0 — not specified.)}
+\item{relation}{Friend's relationship status (1 - single; 2 - in a relationship; 3 - engaged; 4 - married; 5 - it's complicated; 6 - actively searching; 7 - in love; 8 - in a civil union; 0 - not specified.)}
 \item{...}{Other fields if available}
 For more information about fields, see References.
 }

@@ -15,7 +15,8 @@ Returns a data.frame with publicly available information about followers of a us
 
 
 \usage{
-getUserFollowersInfo(user_id, access_token, num_universities = 1, num_schools = 1, num_jobs = 1)
+getUserFollowersInfo(user_id, access_token, 
+    num_universities = 1, num_schools = 1, num_jobs = 1)
 }
 
 
@@ -46,7 +47,7 @@ A data.frame with columns (can vary due to information availability):
 \item{bdate}{Follower's birth date}
 \item{city}{City code the follower specified in the "Contacts" section}
 \item{country}{Country code the follower specified in the "Contacts" section}
-\item{relation}{Follower's relationship status (1 – single; 2 – in a relationship; 3 – engaged; 4 – married; 5 – it's complicated; 6 – actively searching; 7 – in love; 8 — in a civil union; 0 — not specified.)}
+\item{relation}{Follower's relationship status (1 - single; 2 - in a relationship; 3 - engaged; 4 - married; 5 - it's complicated; 6 - actively searching; 7 - in love; 8 - in a civil union; 0 - not specified.)}
 \item{...}{Other fields if available}
 For more information about fields, see References.
 }
@@ -64,8 +65,8 @@ Denis Stukal \url{denis.stukal@nyu.edu}
 
 \examples{
 \dontrun{
-mytoken = 'XXXXXXXXXXXXXX'
-userid = AAAAAAAA
+mytoken = 'XXXXXXXX'
+userid = AAAAAAA
 dat <- getUserFollowersInfo(user_id = userid, access_token = mytoken)
 str(dat)
 }

@@ -39,7 +39,7 @@ A data.frame with columns (can vary due to information availability):
 \item{id}{Group ID}
 \item{name}{Group name}
 \item{screen_name}{Group screen name}
-\item{is_closed}{Flag for group type (0 — open, 1 — closed, 2 — private)}
+\item{is_closed}{Flag for group type (0 - open, 1 - closed, 2 - private)}
 \item{type}{Group, or public page, or event }
 \item{photo_50}{URL address for the 50px-wide group logo}
 \item{...}{Other fields if available}

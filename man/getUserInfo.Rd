@@ -46,7 +46,7 @@ A data.frame with columns (can vary due to information availability):
 \item{bdate}{User's birth date}
 \item{city}{City code the user specified in the "Contacts" section}
 \item{country}{Country code the user specified in the "Contacts" section}
-\item{relation}{User's relationship status (1 – single; 2 – in a relationship; 3 – engaged; 4 – married; 5 – it's complicated; 6 – actively searching; 7 – in love; 8 — in a civil union; 0 — not specified.)}
+\item{relation}{User's relationship status (1 - single; 2 - in a relationship; 3 - engaged; 4 - married; 5 - it's complicated; 6 - actively searching; 7 - in love; 8 - in a civil union; 0 - not specified.)}
 \item{...}{Other fields if available}
 }
 

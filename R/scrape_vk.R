@@ -623,7 +623,7 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
     return(NULL)
   } else {
     items <- fetched$response$items
-    items <- subset(items, select = -copy_history)
+    items <- items[,-which(names(items) == 'copy_history')]
     output <- data.frame('post_id' = items$id,
                          'user_id' = items$from_id, stringsAsFactors = F)
     if ('date' %in% names(items)) {
@@ -1005,7 +1005,7 @@ getGroupPostReposts <- function(group_id, post_id, access_token) {
     return(NULL)
   } else {
     items <- fetched$response$items
-    items <- subset(items, select = -copy_history)
+    items <- items[,-which(names(items) == 'copy_history')]
     output <- data.frame('post_id' = items$id,
                          'user_id' = items$from_id,
                          'date' = items$date,
