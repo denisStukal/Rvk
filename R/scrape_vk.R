@@ -251,6 +251,35 @@ getUserInfo <- function(user_ids, access_token, num_universities = 1, num_school
 }
 
 
+getMultiUserInfo <- function(user_ids, access_token) {
+  user_ids <- paste(user_ids, collapse = ',')
+  fetched <- RJSONIO::fromJSON(paste0('https://api.vk.com/method/users.get?user_ids=', user_ids,'&fields=photo_id,verified,sex,bdate,city,country,home_town,has_photo,photo_100,has_mobile,contacts,site,education,universities,schools,status,last_seen,followers_count,common_count,occupation,relatives,relation,personal,connections,wall_comments,activities,interests,music,movies,tv,books,games,about,quotes,timezone,screen_name,maiden_name,is_friend,friend_status,career,military&v=5.64&access_token=', access_token))
+  fetched <- fetched$response
+  outp <- lapply(1:length(fetched), function(k) data.frame('id' = ifelse(is.null(fetched[[k]][['id']]), NA, as.character(fetched[[k]][['id']])),
+                                                           'first_name' = ifelse(is.null(fetched[[k]][['first_name']]), NA, fetched[[k]][['first_name']]),
+                                                           'last_name' = ifelse(is.null(fetched[[k]][['last_name']]), NA, fetched[[k]][['last_name']]),
+                                                           'sex' = ifelse(is.null(fetched[[k]][['sex']]), NA, fetched[[k]][['sex']]),
+                                                           'screen_name' = ifelse(is.null(fetched[[k]][['screen_name']]), NA, fetched[[k]][['screen_name']]),
+                                                           'bdate' = ifelse(is.null(fetched[[k]][['bdate']]), NA, fetched[[k]][['bdate']]),
+                                                           'city' = ifelse(is.null(fetched[[k]][['city']][['title']]), NA, fetched[[k]][['city']][['title']]),
+                                                           'country' = ifelse(is.null(fetched[[k]][['country']][['title']]), NA, fetched[[k]][['country']][['title']]),
+                                                           'relation' = ifelse(is.null(fetched[[k]][['relation']]), NA, fetched[[k]][['relation']]),
+                                                           'relation_partner_id' = ifelse(is.null(fetched[[k]][['relation_partner']][['id']]), NA, fetched[[k]][['relation_partner']][['id']]),
+                                                           'has_photo' = ifelse(is.null(fetched[[k]][['has_photo']]), NA, fetched[[k]][['has_photo']]),
+                                                           'wall_comments' = ifelse(is.null(fetched[[k]][['wall_comments']]), NA, fetched[[k]][['wall_comments']]),
+                                                           'photo_100' = ifelse(is.null(fetched[[k]][['photo_100']]), NA, fetched[[k]][['photo_100']]),
+                                                           'has_mobile' = ifelse(is.null(fetched[[k]][['has_mobile']]), NA, fetched[[k]][['has_mobile']]),
+                                                           'can_see_all_posts' = ifelse(is.null(fetched[[k]][['can_see_all_posts']]), NA, fetched[[k]][['can_see_all_posts']]),
+                                                           'status' = ifelse(is.null(fetched[[k]][['status']]), NA, fetched[[k]][['status']]),
+                                                           'last_seen' = ifelse(is.null(fetched[[k]][['last_seen']]), NA, fetched[[k]][['last_seen']]), stringsAsFactors = F)  )
+  outp <- do.call('rbind', outp)
+  outp <- store_universities(items = fetched, output = outp)
+  outp <- store_jobs(items = fetched, output = outp)
+  outp <- store_schools(items = fetched, output = outp)
+  return(outp)
+}
+
+
 getUserFollowersNum <- function(user_id, access_token) {
   fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/users.getFollowers?user_id=', user_id,'&fields=sex,bdate,city,country,photo_100,lists,domain,has_mobile,contacts,connections,site,education,universities,schools,can_see_all_posts,status,last_seen,common_count,relation,relatives&v=5.64&access_token=', access_token))
   if ('error' %in% names(fetched)) {
@@ -679,6 +708,18 @@ getUserPostComments <- function(user_id, post_id, access_token) {
 }
 
 
+getUserPostLikes <- function(user_id, post_id, access_token) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/likes.getList?type=post&owner_id=', user_id,'&item_id=', post_id,'&count=1000&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
+  if ('error' %in% names(fetched)) {
+    cat('ERROR: ', fetched$error$error_msg, '\n')
+    return(NULL)
+  } else {
+    items <- fetched$response$items
+    return(items)
+  }
+} 
+
+
 getUserPostReposts <- function(user_id, post_id, access_token) {
   fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&need_likes=1&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
   if ('error' %in% names(fetched)) {
@@ -1081,6 +1122,58 @@ getGroupPostReposts <- function(group_id, post_id, access_token) {
 }
 
 
+getGroupPostLikes <- function(group_id, post_id, access_token) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/likes.getList?type=post&owner_id=', -group_id,'&item_id=', post_id,'&count=1000&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
+  if ('error' %in% names(fetched)) {
+    cat('ERROR: ', fetched$error$error_msg, '\n')
+    return(NULL)
+  } else {
+    items <- fetched$response$items
+    return(items)
+  }
+} 
+
+
+#------- Internal:
+store_universities <- function(items, output) {
+  output$universities_number <- sapply(1:length(items), function(k) ifelse( 'universities' %in% names(items[[k]]) & length(items[[k]][['universities']]) > 0, length(items[[k]]$universities), NA ))
+  # univ - list of data.frame with data on universities, NA otherwise
+  univ <- sapply(1:length(items), function(k) ifelse( 'universities' %in% names(items[[k]]) & length(items[[k]][['universities']]) > 0, list(items[[k]][['universities']]), data.frame('graduation' = NA)))
+  univ[which(!is.na(univ))]  <- sapply(which(!is.na(univ)), function(k) as.data.frame(do.call('rbind', univ[[k]])))
+  output$universities <- univ
+  return(output)
+}
+
+
+store_jobs <- function(items, output) {
+  output$jobs_number <- sapply(1:length(items), function(k) ifelse( 'career' %in% names(items[[k]]) & length(items[[k]][['career']]) > 0, length(items[[k]]$career), NA ))
+  jobs <- sapply(1:length(items), function(k) ifelse( 'career' %in% names(items[[k]]) & length(items[[k]][['career']]) > 0, list(items[[k]][['career']]), data.frame('graduation' = NA)))
+  jobs[which(!is.na(jobs))] <- lapply(which(!is.na(jobs)), function(k) data.frame('company' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$company), jobs[[k]][[m]]$company, NA)),
+                                                                                  'country_id' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$country_id), jobs[[k]][[m]]$country_id, NA)),
+                                                                                  'city_id' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$city_id), jobs[[k]][[m]]$city_id, NA)),
+                                                                                  'from' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$from), jobs[[k]][[m]]$from, NA)),
+                                                                                  'until' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$until), jobs[[k]][[m]]$until, NA)),
+                                                                                  'position' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$position), jobs[[k]][[m]]$position, NA)), stringsAsFactors = F))
+  output$jobs <- jobs
+  return(output)
+}
+
+
+store_schools <- function(items, output) {
+  output$schools_number <- sapply(1:length(items), function(k) ifelse( 'schools' %in% names(items[[k]]) & length(items[[k]][['schools']]) > 0, length(items[[k]]$schools), NA ))
+  schools <- sapply(1:length(items), function(k) ifelse( 'schools' %in% names(items[[k]]) & length(items[[k]][['schools']]) > 0, list(items[[k]][['schools']]), data.frame('graduation' = NA)))
+  schools[which(!is.na(schools))] <- lapply(which(!is.na(schools)), function(k) data.frame('id' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$id), schools[[k]][[m]]$id, NA)),
+                                                                                           'country_id' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$country), schools[[k]][[m]]$country, NA)),
+                                                                                           'city_id' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$city), schools[[k]][[m]]$city, NA)),
+                                                                                           'name' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$name), schools[[k]][[m]]$name, NA)),
+                                                                                           'class' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$class), schools[[k]][[m]]$class, NA)),
+                                                                                           'year_from' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$year_from), schools[[k]][[m]]$year_from, NA)),
+                                                                                           'year_to' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$year_to), schools[[k]][[m]]$year_to, NA)), stringsAsFactors = F))
+  output$schools <- schools
+  return(output)
+}
+
+
 # Chance city and country codes into names: get all dataset, then covern city codes to city names for each country separately?
 # Trace all likes etc to posts on the wall: likes.getList
 # Merge comments into Wall? 
@@ -1094,6 +1187,5 @@ getGroupPostReposts <- function(group_id, post_id, access_token) {
 # Add:
 # wall.search: search post on a wall by a criterion
 # groups.isMember
-# getUserPostLikes: likes.getList
 # getUserPostCommentLikes
 
