@@ -214,7 +214,7 @@ getMultiUserInfo <- function(user_ids, access_token) {
                                                            'has_mobile' = ifelse(is.null(fetched[[k]][['has_mobile']]), NA, fetched[[k]][['has_mobile']]),
                                                            'can_see_all_posts' = ifelse(is.null(fetched[[k]][['can_see_all_posts']]), NA, fetched[[k]][['can_see_all_posts']]),
                                                            'status' = ifelse(is.null(fetched[[k]][['status']]), NA, fetched[[k]][['status']]),
-                                                           'last_seen' = ifelse(is.null(fetched[[k]][['last_seen']]), NA, fetched[[k]][['last_seen']])
+                                                           'last_seen' = ifelse(is.null(fetched[[k]][['last_seen']]), NA, fetched[[k]][['last_seen']]),
                                                            'last_seen_date' <- as.Date(as.POSIXct(output$last_seen, origin="1970-01-01")), stringsAsFactors = F)  )
   outp <- do.call('rbind', outp)
   outp <- store_universities(items = fetched, output = outp)
@@ -555,103 +555,69 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
 
 #----------------- GROUPS -----------------#
 getGroupMembers <- function(group_id, access_token, count = 1000) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/groups.getMembers?group_id=', group_id,'&fields=sex,bdate,city,country,photo_100,lists,domain,has_mobile,contacts,connections,site,education,universities,schools,career,can_see_all_posts,status,last_seen,common_count,relation,relatives&v=5.64&access_token=', access_token))
-  if ('error' %in% names(fetched)) {
-    cat('ERROR: ', fetched$error$error_msg, '\n')
-    return(NULL)
-  } else {
-    items <- fetched$response$items
-    output <- data.frame('id' = items$id,
-                         'first_name' = items$first_name,
-                         'last_name' = items$last_name,
-                         stringsAsFactors = F)
-    if ('sex' %in% names(items)) {
-      output$sex <- items$sex
-      output$sex[output$sex == 0] <- NA
-      output$sex[output$sex == 1] <- 'female'
-      output$sex[output$sex == 2] <- 'male'
-    }
-    if ('screen_name' %in% names(items)) {
-      output$screen_name <- items$screen_name
-    }
-    if ('mobile_phone' %in% names(items)) {
-      output$mobile_phone <- items$mobile_phone
-    }
-    if ('site' %in% names(items)) {
-      output$site <- items$site
-    }
-    if ('status' %in% names(items)) {
-      output$status <- items$status
-    }
-    if ('common_count' %in% names(items)) {
-      output$common_count <- items$common_count
-    }
-    if ('deactivated' %in% names(items)) {
-      output$deactivated <- items$deactivated
-    }
-    if ('instagram' %in% names(items)) {
-      output$instagram <- items$instagram
-    }
-    if ('skype' %in% names(items)) {
-      output$skype <- items$skype
-    }
-    if ('facebook' %in% names(items)) {
-      output$facebook <- items$facebook
-    }
-    if ('facebook_name' %in% names(items)) {
-      output$facebook_name <- items$facebook_name
-    }
-    if ('twitter' %in% names(items)) {
-      output$twitter <- items$twitter
-    }
-    if ('livejournal' %in% names(items)) {
-      output$livejournal <- items$livejournal
-    }
-    if ('screen_name' %in% names(items)) {
-      output$screen_name <- items$screen_name
-    }
-    if ('bdate' %in% names(items)) {
-      output$bdate <- items$bdate
-    }
-    if ('city' %in% names(items)) {
-      output$city <- items$city$title
-    }
-    if ('country' %in% names(items)) {
-      output$country <- items$country$title
-    }
-    if ('relation' %in% names(items)) {
-      output$relation <- items$relation
-    }
-    if ('relation_partner' %in% names(items)) {
-      output$relation_partner_id <- items$relation_partner$id
-    }
-    if ('has_photo' %in% names(items)) {
-      output$has_photo <- items$has_photo
-    }
-    if ('wall_comments' %in% names(items)) {
-      output$num_wall_comments <- items$wall_comments
-    }
-    if ('photo_100' %in% names(items)) {
-      output$photo_url <- items$photo_100
-    }
-    if ('has_mobile' %in% names(items)) {
-      output$has_mobile <- items$has_mobile
-    }
-    if ('can_see_all_posts' %in% names(items)) {
-      output$can_see_all_posts <- items$can_see_all_posts
-    }
-    if ('status' %in% names(items)) {
-      output$status <- items$status
-    }
-    if ('last_seen' %in% names(items)) {
-      output$last_seen <- items$last_seen$time
-      output$last_seen_date <- as.Date(as.POSIXct(output$last_seen, origin="1970-01-01"))
-    }
-    output <- store_universities(items = items, output = output)
-    output <- store_schools(items = items, output = output)
-    output <- store_jobs(items = items, output = output)
-    return(output)
+  st <- proc.time()
+  info <- getGroupInfo(group_id = group_id, access_token = mytoken)
+  offsets <- c(0, 1000*(1:floor(info$members_count/1000)))
+  cat('VK API allows retrieving group members by chunks of 1000 users. All members are retrieved iteratively.\n')
+  howmany <- suppressWarnings(ifelse(readline(prompt = paste0('There will a total of ', length(offsets),' iterations. Do you want all of them? Type no if not: ')) == 'no', 
+                                     as.numeric(readline(prompt = paste0('Type the number of iterations you want (<= ', length(offsets),'): '))), 
+                                     length(offsets)))
+  
+  while (is.na(howmany)) {
+    howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('Wrong input! Try again! Type the number of iterations you want (<= ', length(offsets),'): '))))
   }
+  cat('Iterations started.\n')
+  for (j in 1:howmany) {
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/groups.getMembers?group_id=', group_id,'&offset=', offsets[j],'&fields=sex,bdate,city,country,photo_100,lists,domain,has_mobile,contacts,connections,site,education,universities,schools,career,can_see_all_posts,status,last_seen,common_count,relation,relatives&v=5.64&access_token=', access_token))
+    if ('error' %in% names(fetched)) {
+      cat('ERROR: ', fetched$error$error_msg, '\n')
+      return(NULL)
+    } else {
+      items <- fetched$response$items
+      output <- data.frame('id' = items$id, 'first_name' = items$first_name, 'last_name' = items$last_name, stringsAsFactors = F)
+      
+      output$sex <- sapply(1:nrow(output), function(k) ifelse(is.null(items$sex), NA, ifelse(items$sex[k] == 0, NA, ifelse(items$sex[k] == 1, 'female', 'male'))))
+      output$screen_name <- sapply(1:nrow(output), function(k) ifelse(is.null(items$screen_name), NA, items$screen_name[k]))
+      output$mobile_phone <- sapply(1:nrow(output), function(k) ifelse(is.null(items$mobile_phone), NA, items$mobile_phone[k]))
+      output$site <- sapply(1:nrow(output), function(k) ifelse(is.null(items$site), NA, items$site[k]))
+      output$status <- sapply(1:nrow(output), function(k) ifelse(is.null(items$status), NA, items$status[k]))
+      output$common_count <- sapply(1:nrow(output), function(k) ifelse(is.null(items$common_count), NA, items$common_count[k]))
+      output$deactivated <- sapply(1:nrow(output), function(k) ifelse(is.null(items$deactivated), NA, items$deactivated[k]))
+      output$instagram <- sapply(1:nrow(output), function(k) ifelse(is.null(items$instagram), NA, items$instagram[k]))
+      output$skype <- sapply(1:nrow(output), function(k) ifelse(is.null(items$skype), NA, items$skype[k]))
+      output$facebook <- sapply(1:nrow(output), function(k) ifelse(is.null(items$facebook), NA, items$facebook[k]))
+      output$facebook_name <- sapply(1:nrow(output), function(k) ifelse(is.null(items$facebook_name), NA, items$facebook_name[k]))
+      output$twitter <- sapply(1:nrow(output), function(k) ifelse(is.null(items$twitter), NA, items$twitter[k]))
+      output$livejournal <- sapply(1:nrow(output), function(k) ifelse(is.null(items$livejournal), NA, items$livejournal[k]))
+      output$bdate <- sapply(1:nrow(output), function(k) ifelse(is.null(items$bdate), NA, items$bdate[k]))
+      output$city <- sapply(1:nrow(output), function(k) ifelse(is.null(items$city), NA, items$city$title[k]))
+      output$country <- sapply(1:nrow(output), function(k) ifelse(is.null(items$country), NA, items$country$title[k]))
+      output$relation <- sapply(1:nrow(output), function(k) ifelse(is.null(items$relation), NA, items$relation[k]))
+      output$relation_partner_id <- sapply(1:nrow(output), function(k) ifelse(is.null(items$relation_partner$id), NA, items$relation_partner$id[k]))
+      output$has_photo <- sapply(1:nrow(output), function(k) ifelse(is.null(items$has_photo), NA, items$has_photo[k]))
+      output$wall_comments <- sapply(1:nrow(output), function(k) ifelse(is.null(items$wall_comments), NA, items$wall_comments[k]))
+      output$photo_url <- sapply(1:nrow(output), function(k) ifelse(is.null(items$photo_100), NA, items$photo_100[k]))
+      output$has_mobile <- sapply(1:nrow(output), function(k) ifelse(is.null(items$has_mobile), NA, items$has_mobile[k]))
+      output$can_see_all_posts <- sapply(1:nrow(output), function(k) ifelse(is.null(items$can_see_all_posts), NA, items$can_see_all_posts[k]))
+      output$status <- sapply(1:nrow(output), function(k) ifelse(is.null(items$status), NA, items$status[k]))
+      output$last_seen <- sapply(1:nrow(output), function(k) ifelse(is.null(items$last_seen), NA, items$last_seen$time[k]))
+      output$last_seen_date <- as.Date(as.POSIXct(output$last_seen, origin="1970-01-01"))
+      
+      output <- store_universities(items = items, output = output)
+      output <- store_schools(items = items, output = output)
+      output <- store_jobs(items = items, output = output)
+    }
+    if (j == 1) {
+      total_output <- output
+    } else {
+      total_output <- rbind(total_output, output)
+    }
+    cat('Iteration', j, '/', howmany,'done\n')
+    Sys.sleep(1)
+  }
+  fin <- proc.time()
+  cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
+  return(total_output)
 }
 
 
