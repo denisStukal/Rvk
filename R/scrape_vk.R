@@ -102,6 +102,85 @@ store_schools <- function(items, output) {
 }
 
 
+extract_wall <- function(user_id, access_token, offset) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', user_id,'&offset=', offset,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
+  if ('error' %in% names(fetched)) {
+    cat('ERROR: ', fetched$error$error_msg, '\n')
+    return(NULL)
+  } else {
+    items <- fetched$response$items
+    output <- data.frame('id' = items$id, 
+                         'date' = as.Date(as.POSIXct(items$date, origin="1970-01-01")),
+                         'date_POSIXct' = items$date,
+                         'text' = items$text,
+                         'comments_count' = items$comments$count,
+                         'likes_count' = items$likes$count,
+                         'reposts_count' = items$reposts$count,
+                         'reposted' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), 0, 1)),
+                         'reposted_from_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, items$copy_history[k][[1]]$from_id)),
+                         'reposted_original_date' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, as.Date(as.POSIXct(items$copy_history[k][[1]]$date, origin="1970-01-01")))),
+                         'reposted_original_date_POSIXct' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, items$copy_history[k][[1]]$date)),
+                         'attachment' = sapply(1:nrow(items), function(k) ifelse(!is.null(items$attachments[k][[1]]), 1, ifelse(is.null(unique(items$copy_history[k][[1]]$attachment[[1]]$type)), 0, 1   )  )),
+                         'attached_photo_id' = NA,
+                         'attached_photo_url' = NA,
+                         'attached_photo_text' = NA,
+                         'attached_link_url' = NA,
+                         'attached_link_title' = NA,
+                         'attached_audio_id' = NA,
+                         'attached_audio_artist' = NA,
+                         'attached_audio_title' = NA,
+                         'attached_video_id' = NA,
+                         'attached_video_title' = NA,
+                         'attached_video_platform' = NA,
+                         'attached_video_access_key' = NA,
+                         'attached_doc_id' = NA,
+                         'attached_doc_title' = NA,
+                         'attached_doc_url' = NA,
+                         'attached_doc_access_key' = NA,
+                         stringsAsFactors = F)
+    rep_text <- sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, items$copy_history[k][[1]]$text))
+    output$text[output$reposted == 1] <- rep_text[which(!is.na(rep_text))]
+    # photos
+    output$attached_photo_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$photo$id), NA, ifelse(length(items$attachments[k][[1]]$photo$id) == 1, unlist(items$attachments[k][[1]]$photo$id), list(items$attachments[k][[1]]$photo$id)) ) )
+    output$attached_photo_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$photo$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$photo$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$photo$id), list(items$copy_history[k][[1]]$attachments[[1]]$photo$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$photo$id)])) ))
+    output$attached_photo_url[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$photo$photo_604), NA, ifelse(length(items$attachments[k][[1]]$photo$photo_604) == 1, unlist(items$attachments[k][[1]]$photo$photo_604), list(items$attachments[k][[1]]$photo$photo_604)) ) )
+    output$attached_photo_url[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604), list(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604[!is.na(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604)])) ))
+    output$attached_photo_text[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$photo$text), NA, ifelse(length(items$attachments[k][[1]]$photo$text) == 1, unlist(items$attachments[k][[1]]$photo$text), list(items$attachments[k][[1]]$photo$text)) ) )
+    output$attached_photo_text[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$photo$text), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$photo$text) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$photo$text), list(items$copy_history[k][[1]]$attachments[[1]]$photo$text[!is.na(items$copy_history[k][[1]]$attachments[[1]]$photo$text)])) ))
+    # links
+    output$attached_link_url[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$link$url), NA, ifelse(length(items$attachments[k][[1]]$link$url) == 1, unlist(items$attachments[k][[1]]$link$url), list(items$attachments[k][[1]]$link$url)) ) )
+    output$attached_link_url[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$link$url), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$link$url) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$link$url), list(items$copy_history[k][[1]]$attachments[[1]]$link$url[!is.na(items$copy_history[k][[1]]$attachments[[1]]$link$url)])) ))
+    output$attached_link_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$link$title), NA, ifelse(length(items$attachments[k][[1]]$link$title) == 1, unlist(items$attachments[k][[1]]$link$title), list(items$attachments[k][[1]]$link$title)) ) )
+    output$attached_link_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$link$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$link$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$link$title), list(items$copy_history[k][[1]]$attachments[[1]]$link$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$link$title)])) ))
+    # audios
+    output$attached_audio_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$audio$id), NA, ifelse(length(items$attachments[k][[1]]$audio$id) == 1, unlist(items$attachments[k][[1]]$audio$id), list(items$attachments[k][[1]]$audio$id)) ) )
+    output$attached_audio_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$audio$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$audio$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$audio$id), list(items$copy_history[k][[1]]$attachments[[1]]$audio$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$audio$id)])) ))
+    output$attached_audio_artist[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$audio$artist), NA, ifelse(length(items$attachments[k][[1]]$audio$artist) == 1, unlist(items$attachments[k][[1]]$audio$artist), list(items$attachments[k][[1]]$audio$artist)) ) )
+    output$attached_audio_artist[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$audio$artist), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$audio$artist) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$audio$artist), list(items$copy_history[k][[1]]$attachments[[1]]$audio$artist[!is.na(items$copy_history[k][[1]]$attachments[[1]]$audio$artist)])) ))
+    output$attached_audio_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$audio$title), NA, ifelse(length(items$attachments[k][[1]]$audio$title) == 1, unlist(items$attachments[k][[1]]$audio$title), list(items$attachments[k][[1]]$audio$title)) ) )
+    output$attached_audio_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$audio$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$audio$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$audio$title), list(items$copy_history[k][[1]]$attachments[[1]]$audio$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$audio$title)])) ))
+    # videos
+    output$attached_video_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$id), NA, ifelse(length(items$attachments[k][[1]]$video$id) == 1, unlist(items$attachments[k][[1]]$video$id), list(items$attachments[k][[1]]$video$id)) ) )
+    output$attached_video_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$id), list(items$copy_history[k][[1]]$attachments[[1]]$video$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$id)])) ))
+    output$attached_video_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$title), NA, ifelse(length(items$attachments[k][[1]]$video$title) == 1, unlist(items$attachments[k][[1]]$video$title), list(items$attachments[k][[1]]$video$title)) ) )
+    output$attached_video_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$title), list(items$copy_history[k][[1]]$attachments[[1]]$video$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$title)])) ))
+    output$attached_video_platform[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$platform), NA, ifelse(length(items$attachments[k][[1]]$video$platform) == 1, unlist(items$attachments[k][[1]]$video$platform), list(items$attachments[k][[1]]$video$platform)) ) )
+    output$attached_video_platform[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$platform), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$platform) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$platform), list(items$copy_history[k][[1]]$attachments[[1]]$video$platform[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$platform)])) ))
+    output$attached_video_access_key[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$access_key), NA, ifelse(length(items$attachments[k][[1]]$video$access_key) == 1, unlist(items$attachments[k][[1]]$video$access_key), list(items$attachments[k][[1]]$video$access_key)) ) )
+    output$attached_video_access_key[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$access_key), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$access_key) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$access_key), list(items$copy_history[k][[1]]$attachments[[1]]$video$access_key[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$access_key)])) ))
+    # docs
+    output$attached_doc_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$id), NA, ifelse(length(items$attachments[k][[1]]$doc$id) == 1, unlist(items$attachments[k][[1]]$doc$id), list(items$attachments[k][[1]]$doc$id)) ) )
+    output$attached_doc_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$id), list(items$copy_history[k][[1]]$attachments[[1]]$doc$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$id)])) ))
+    output$attached_doc_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$title), NA, ifelse(length(items$attachments[k][[1]]$doc$title) == 1, unlist(items$attachments[k][[1]]$doc$title), list(items$attachments[k][[1]]$doc$title)) ) )
+    output$attached_doc_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$title), list(items$copy_history[k][[1]]$attachments[[1]]$doc$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$title)])) ))
+    output$attached_doc_url[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$url), NA, ifelse(length(items$attachments[k][[1]]$doc$url) == 1, unlist(items$attachments[k][[1]]$doc$url), list(items$attachments[k][[1]]$doc$url)) ) )
+    output$attached_doc_url[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$url), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$url) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$url), list(items$copy_history[k][[1]]$attachments[[1]]$doc$url[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$url)])) ))
+    output$attached_doc_access_key[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$access_key), NA, ifelse(length(items$attachments[k][[1]]$doc$access_key) == 1, unlist(items$attachments[k][[1]]$doc$access_key), list(items$attachments[k][[1]]$doc$access_key)) ) )
+    output$attached_doc_access_key[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key), list(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key)])) ))
+    return(output)
+  }
+}
+
 
 #------- Authorization:
 makeAccessToken <- function(token_file_name) {
@@ -191,7 +270,6 @@ getUserInfo <- function(user_ids, access_token) {
     return(output)
   }
 }
-
 
 
 getMultiUserInfo <- function(user_ids, access_token) {
@@ -397,75 +475,34 @@ getUserWall <- function(user_id, access_token) {
     return(NULL)
   } else {
     items <- fetched$response$items
-    output <- data.frame('id' = items$id, 
-                         'date' = as.Date(as.POSIXct(items$date, origin="1970-01-01")),
-                         'date_POSIXct' = items$date,
-                         'text' = items$text,
-                         'comments_count' = items$comments$count,
-                         'likes_count' = items$likes$count,
-                         'reposts_count' = items$reposts$count,
-                         'reposted' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), 0, 1)),
-                         'reposted_from_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, items$copy_history[k][[1]]$from_id)),
-                         'reposted_original_date' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, as.Date(as.POSIXct(items$copy_history[k][[1]]$date, origin="1970-01-01")))),
-                         'reposted_original_date_POSIXct' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, items$copy_history[k][[1]]$date)),
-                         'attachment' = sapply(1:nrow(items), function(k) ifelse(!is.null(items$attachments[k][[1]]), 1, ifelse(is.null(unique(items$copy_history[k][[1]]$attachment[[1]]$type)), 0, 1   )  )),
-                         'attached_photo_id' = NA,
-                         'attached_photo_url' = NA,
-                         'attached_photo_text' = NA,
-                         'attached_link_url' = NA,
-                         'attached_link_title' = NA,
-                         'attached_audio_id' = NA,
-                         'attached_audio_artist' = NA,
-                         'attached_audio_title' = NA,
-                         'attached_video_id' = NA,
-                         'attached_video_title' = NA,
-                         'attached_video_platform' = NA,
-                         'attached_video_access_key' = NA,
-                         'attached_doc_id' = NA,
-                         'attached_doc_title' = NA,
-                         'attached_doc_url' = NA,
-                         'attached_doc_access_key' = NA,
-                         stringsAsFactors = F)
-    rep_text <- sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, items$copy_history[k][[1]]$text))
-    output$text[output$reposted == 1] <- rep_text[which(!is.na(rep_text))]
-    # photos
-    output$attached_photo_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$photo$id), NA, ifelse(length(items$attachments[k][[1]]$photo$id) == 1, unlist(items$attachments[k][[1]]$photo$id), list(items$attachments[k][[1]]$photo$id)) ) )
-    output$attached_photo_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$photo$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$photo$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$photo$id), list(items$copy_history[k][[1]]$attachments[[1]]$photo$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$photo$id)])) ))
-    output$attached_photo_url[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$photo$photo_604), NA, ifelse(length(items$attachments[k][[1]]$photo$photo_604) == 1, unlist(items$attachments[k][[1]]$photo$photo_604), list(items$attachments[k][[1]]$photo$photo_604)) ) )
-    output$attached_photo_url[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604), list(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604[!is.na(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604)])) ))
-    output$attached_photo_text[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$photo$text), NA, ifelse(length(items$attachments[k][[1]]$photo$text) == 1, unlist(items$attachments[k][[1]]$photo$text), list(items$attachments[k][[1]]$photo$text)) ) )
-    output$attached_photo_text[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$photo$text), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$photo$text) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$photo$text), list(items$copy_history[k][[1]]$attachments[[1]]$photo$text[!is.na(items$copy_history[k][[1]]$attachments[[1]]$photo$text)])) ))
-    # links
-    output$attached_link_url[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$link$url), NA, ifelse(length(items$attachments[k][[1]]$link$url) == 1, unlist(items$attachments[k][[1]]$link$url), list(items$attachments[k][[1]]$link$url)) ) )
-    output$attached_link_url[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$link$url), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$link$url) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$link$url), list(items$copy_history[k][[1]]$attachments[[1]]$link$url[!is.na(items$copy_history[k][[1]]$attachments[[1]]$link$url)])) ))
-    output$attached_link_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$link$title), NA, ifelse(length(items$attachments[k][[1]]$link$title) == 1, unlist(items$attachments[k][[1]]$link$title), list(items$attachments[k][[1]]$link$title)) ) )
-    output$attached_link_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$link$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$link$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$link$title), list(items$copy_history[k][[1]]$attachments[[1]]$link$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$link$title)])) ))
-    # audios
-    output$attached_audio_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$audio$id), NA, ifelse(length(items$attachments[k][[1]]$audio$id) == 1, unlist(items$attachments[k][[1]]$audio$id), list(items$attachments[k][[1]]$audio$id)) ) )
-    output$attached_audio_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$audio$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$audio$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$audio$id), list(items$copy_history[k][[1]]$attachments[[1]]$audio$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$audio$id)])) ))
-    output$attached_audio_artist[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$audio$artist), NA, ifelse(length(items$attachments[k][[1]]$audio$artist) == 1, unlist(items$attachments[k][[1]]$audio$artist), list(items$attachments[k][[1]]$audio$artist)) ) )
-    output$attached_audio_artist[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$audio$artist), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$audio$artist) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$audio$artist), list(items$copy_history[k][[1]]$attachments[[1]]$audio$artist[!is.na(items$copy_history[k][[1]]$attachments[[1]]$audio$artist)])) ))
-    output$attached_audio_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$audio$title), NA, ifelse(length(items$attachments[k][[1]]$audio$title) == 1, unlist(items$attachments[k][[1]]$audio$title), list(items$attachments[k][[1]]$audio$title)) ) )
-    output$attached_audio_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$audio$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$audio$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$audio$title), list(items$copy_history[k][[1]]$attachments[[1]]$audio$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$audio$title)])) ))
-    # videos
-    output$attached_video_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$id), NA, ifelse(length(items$attachments[k][[1]]$video$id) == 1, unlist(items$attachments[k][[1]]$video$id), list(items$attachments[k][[1]]$video$id)) ) )
-    output$attached_video_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$id), list(items$copy_history[k][[1]]$attachments[[1]]$video$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$id)])) ))
-    output$attached_video_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$title), NA, ifelse(length(items$attachments[k][[1]]$video$title) == 1, unlist(items$attachments[k][[1]]$video$title), list(items$attachments[k][[1]]$video$title)) ) )
-    output$attached_video_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$title), list(items$copy_history[k][[1]]$attachments[[1]]$video$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$title)])) ))
-    output$attached_video_platform[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$platform), NA, ifelse(length(items$attachments[k][[1]]$video$platform) == 1, unlist(items$attachments[k][[1]]$video$platform), list(items$attachments[k][[1]]$video$platform)) ) )
-    output$attached_video_platform[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$platform), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$platform) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$platform), list(items$copy_history[k][[1]]$attachments[[1]]$video$platform[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$platform)])) ))
-    output$attached_video_access_key[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$access_key), NA, ifelse(length(items$attachments[k][[1]]$video$access_key) == 1, unlist(items$attachments[k][[1]]$video$access_key), list(items$attachments[k][[1]]$video$access_key)) ) )
-    output$attached_video_access_key[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$access_key), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$access_key) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$access_key), list(items$copy_history[k][[1]]$attachments[[1]]$video$access_key[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$access_key)])) ))
-    # docs
-    output$attached_doc_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$id), NA, ifelse(length(items$attachments[k][[1]]$doc$id) == 1, unlist(items$attachments[k][[1]]$doc$id), list(items$attachments[k][[1]]$doc$id)) ) )
-    output$attached_doc_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$id), list(items$copy_history[k][[1]]$attachments[[1]]$doc$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$id)])) ))
-    output$attached_doc_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$title), NA, ifelse(length(items$attachments[k][[1]]$doc$title) == 1, unlist(items$attachments[k][[1]]$doc$title), list(items$attachments[k][[1]]$doc$title)) ) )
-    output$attached_doc_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$title), list(items$copy_history[k][[1]]$attachments[[1]]$doc$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$title)])) ))
-    output$attached_doc_url[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$url), NA, ifelse(length(items$attachments[k][[1]]$doc$url) == 1, unlist(items$attachments[k][[1]]$doc$url), list(items$attachments[k][[1]]$doc$url)) ) )
-    output$attached_doc_url[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$url), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$url) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$url), list(items$copy_history[k][[1]]$attachments[[1]]$doc$url[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$url)])) ))
-    output$attached_doc_access_key[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$access_key), NA, ifelse(length(items$attachments[k][[1]]$doc$access_key) == 1, unlist(items$attachments[k][[1]]$doc$access_key), list(items$attachments[k][[1]]$doc$access_key)) ) )
-    output$attached_doc_access_key[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key), list(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key)])) ))
-    return(output)
+    offsets <- 100 * 0:floor(fetched$response$count/100)
+    if (length(offsets) > 1) {
+      cat('VK API allows retrieving wall posts by chunks of 100 posts All posts are retrieved iteratively.\n')
+      howmany <- suppressWarnings(ifelse(readline(prompt = paste0('There will be around ', length(offsets),' iterations. Do you want all of them? Type no if not: ')) == 'no', 
+                                         as.numeric(readline(prompt = paste0('Type the number of iterations you want (<= ', length(offsets),'): '))), 
+                                         length(offsets)))
+      
+      while (is.na(howmany)) {
+        howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('Wrong input! Try again! Type the number of iterations you want (<= ', length(offsets),'): '))))
+      }
+    } else{
+      howmany <- 1
+    }
+    st <- proc.time()
+    cat('Iterations started.\n')
+    for (j in 1:howmany) {
+      if (j == 1) {
+        total_output <- extract_wall(user_id = user_id, access_token = access_token, offset = offsets[j])
+      } else {
+        output <- extract_wall(user_id = user_id, access_token = access_token, offset = offsets[j])
+        total_output <- rbind(total_output, output)
+      }
+      cat('Iteration', j, '/', howmany,'done\n')
+      Sys.sleep(1)
+    }
+    fin <- proc.time()
+    cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
+    return(total_output)
   }
 }
 
@@ -557,9 +594,9 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
 getGroupMembers <- function(group_id, access_token, count = 1000) {
   st <- proc.time()
   info <- getGroupInfo(group_id = group_id, access_token = mytoken)
-  offsets <- c(0, 1000*(1:floor(info$members_count/1000)))
+  offsets <- 1000 * 0:floor(max(info$members_count)/1000)
   cat('VK API allows retrieving group members by chunks of 1000 users. All members are retrieved iteratively.\n')
-  howmany <- suppressWarnings(ifelse(readline(prompt = paste0('There will a total of ', length(offsets),' iterations. Do you want all of them? Type no if not: ')) == 'no', 
+  howmany <- suppressWarnings(ifelse(readline(prompt = paste0('There will be a total of ', length(offsets),' iterations. Do you want all of them? Type no if not: ')) == 'no', 
                                      as.numeric(readline(prompt = paste0('Type the number of iterations you want (<= ', length(offsets),'): '))), 
                                      length(offsets)))
   
@@ -672,75 +709,34 @@ getGroupWall <- function(group_id, access_token) {
     return(NULL)
   } else {
     items <- fetched$response$items
-    output <- data.frame('id' = items$id, 
-                         'date' = as.Date(as.POSIXct(items$date, origin="1970-01-01")),
-                         'date_POSIXct' = items$date,
-                         'text' = items$text,
-                         'comments_count' = items$comments$count,
-                         'likes_count' = items$likes$count,
-                         'reposts_count' = items$reposts$count,
-                         'reposted' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), 0, 1)),
-                         'reposted_from_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, items$copy_history[k][[1]]$from_id)),
-                         'reposted_original_date' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, as.Date(as.POSIXct(items$copy_history[k][[1]]$date, origin="1970-01-01")))),
-                         'reposted_original_date_POSIXct' = sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, items$copy_history[k][[1]]$date)),
-                         'attachment' = sapply(1:nrow(items), function(k) ifelse(!is.null(items$attachments[k][[1]]), 1, ifelse(is.null(unique(items$copy_history[k][[1]]$attachment[[1]]$type)), 0, 1   )  )),
-                         'attached_photo_id' = NA,
-                         'attached_photo_url' = NA,
-                         'attached_photo_text' = NA,
-                         'attached_link_url' = NA,
-                         'attached_link_title' = NA,
-                         'attached_audio_id' = NA,
-                         'attached_audio_artist' = NA,
-                         'attached_audio_title' = NA,
-                         'attached_video_id' = NA,
-                         'attached_video_title' = NA,
-                         'attached_video_platform' = NA,
-                         'attached_video_access_key' = NA,
-                         'attached_doc_id' = NA,
-                         'attached_doc_title' = NA,
-                         'attached_doc_url' = NA,
-                         'attached_doc_access_key' = NA,
-                         stringsAsFactors = F)
-    rep_text <- sapply(1:nrow(items), function(k) ifelse(is.null(items$copy_history[k][[1]]), NA, items$copy_history[k][[1]]$text))
-    output$text[output$reposted == 1] <- rep_text[which(!is.na(rep_text))]
-    # photos
-    output$attached_photo_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$photo$id), NA, ifelse(length(items$attachments[k][[1]]$photo$id) == 1, unlist(items$attachments[k][[1]]$photo$id), list(items$attachments[k][[1]]$photo$id)) ) )
-    output$attached_photo_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$photo$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$photo$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$photo$id), list(items$copy_history[k][[1]]$attachments[[1]]$photo$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$photo$id)])) ))
-    output$attached_photo_url[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$photo$photo_604), NA, ifelse(length(items$attachments[k][[1]]$photo$photo_604) == 1, unlist(items$attachments[k][[1]]$photo$photo_604), list(items$attachments[k][[1]]$photo$photo_604)) ) )
-    output$attached_photo_url[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604), list(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604[!is.na(items$copy_history[k][[1]]$attachments[[1]]$photo$photo_604)])) ))
-    output$attached_photo_text[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$photo$text), NA, ifelse(length(items$attachments[k][[1]]$photo$text) == 1, unlist(items$attachments[k][[1]]$photo$text), list(items$attachments[k][[1]]$photo$text)) ) )
-    output$attached_photo_text[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$photo$text), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$photo$text) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$photo$text), list(items$copy_history[k][[1]]$attachments[[1]]$photo$text[!is.na(items$copy_history[k][[1]]$attachments[[1]]$photo$text)])) ))
-    # links
-    output$attached_link_url[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$link$url), NA, ifelse(length(items$attachments[k][[1]]$link$url) == 1, unlist(items$attachments[k][[1]]$link$url), list(items$attachments[k][[1]]$link$url)) ) )
-    output$attached_link_url[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$link$url), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$link$url) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$link$url), list(items$copy_history[k][[1]]$attachments[[1]]$link$url[!is.na(items$copy_history[k][[1]]$attachments[[1]]$link$url)])) ))
-    output$attached_link_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$link$title), NA, ifelse(length(items$attachments[k][[1]]$link$title) == 1, unlist(items$attachments[k][[1]]$link$title), list(items$attachments[k][[1]]$link$title)) ) )
-    output$attached_link_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$link$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$link$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$link$title), list(items$copy_history[k][[1]]$attachments[[1]]$link$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$link$title)])) ))
-    # audios
-    output$attached_audio_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$audio$id), NA, ifelse(length(items$attachments[k][[1]]$audio$id) == 1, unlist(items$attachments[k][[1]]$audio$id), list(items$attachments[k][[1]]$audio$id)) ) )
-    output$attached_audio_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$audio$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$audio$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$audio$id), list(items$copy_history[k][[1]]$attachments[[1]]$audio$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$audio$id)])) ))
-    output$attached_audio_artist[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$audio$artist), NA, ifelse(length(items$attachments[k][[1]]$audio$artist) == 1, unlist(items$attachments[k][[1]]$audio$artist), list(items$attachments[k][[1]]$audio$artist)) ) )
-    output$attached_audio_artist[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$audio$artist), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$audio$artist) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$audio$artist), list(items$copy_history[k][[1]]$attachments[[1]]$audio$artist[!is.na(items$copy_history[k][[1]]$attachments[[1]]$audio$artist)])) ))
-    output$attached_audio_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$audio$title), NA, ifelse(length(items$attachments[k][[1]]$audio$title) == 1, unlist(items$attachments[k][[1]]$audio$title), list(items$attachments[k][[1]]$audio$title)) ) )
-    output$attached_audio_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$audio$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$audio$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$audio$title), list(items$copy_history[k][[1]]$attachments[[1]]$audio$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$audio$title)])) ))
-    # videos
-    output$attached_video_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$id), NA, ifelse(length(items$attachments[k][[1]]$video$id) == 1, unlist(items$attachments[k][[1]]$video$id), list(items$attachments[k][[1]]$video$id)) ) )
-    output$attached_video_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$id), list(items$copy_history[k][[1]]$attachments[[1]]$video$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$id)])) ))
-    output$attached_video_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$title), NA, ifelse(length(items$attachments[k][[1]]$video$title) == 1, unlist(items$attachments[k][[1]]$video$title), list(items$attachments[k][[1]]$video$title)) ) )
-    output$attached_video_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$title), list(items$copy_history[k][[1]]$attachments[[1]]$video$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$title)])) ))
-    output$attached_video_platform[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$platform), NA, ifelse(length(items$attachments[k][[1]]$video$platform) == 1, unlist(items$attachments[k][[1]]$video$platform), list(items$attachments[k][[1]]$video$platform)) ) )
-    output$attached_video_platform[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$platform), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$platform) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$platform), list(items$copy_history[k][[1]]$attachments[[1]]$video$platform[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$platform)])) ))
-    output$attached_video_access_key[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$video$access_key), NA, ifelse(length(items$attachments[k][[1]]$video$access_key) == 1, unlist(items$attachments[k][[1]]$video$access_key), list(items$attachments[k][[1]]$video$access_key)) ) )
-    output$attached_video_access_key[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$video$access_key), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$video$access_key) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$video$access_key), list(items$copy_history[k][[1]]$attachments[[1]]$video$access_key[!is.na(items$copy_history[k][[1]]$attachments[[1]]$video$access_key)])) ))
-    # docs
-    output$attached_doc_id[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$id), NA, ifelse(length(items$attachments[k][[1]]$doc$id) == 1, unlist(items$attachments[k][[1]]$doc$id), list(items$attachments[k][[1]]$doc$id)) ) )
-    output$attached_doc_id[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$id), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$id) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$id), list(items$copy_history[k][[1]]$attachments[[1]]$doc$id[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$id)])) ))
-    output$attached_doc_title[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$title), NA, ifelse(length(items$attachments[k][[1]]$doc$title) == 1, unlist(items$attachments[k][[1]]$doc$title), list(items$attachments[k][[1]]$doc$title)) ) )
-    output$attached_doc_title[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$title), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$title) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$title), list(items$copy_history[k][[1]]$attachments[[1]]$doc$title[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$title)])) ))
-    output$attached_doc_url[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$url), NA, ifelse(length(items$attachments[k][[1]]$doc$url) == 1, unlist(items$attachments[k][[1]]$doc$url), list(items$attachments[k][[1]]$doc$url)) ) )
-    output$attached_doc_url[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$url), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$url) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$url), list(items$copy_history[k][[1]]$attachments[[1]]$doc$url[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$url)])) ))
-    output$attached_doc_access_key[which(output$attachment == 1 & output$reposted == 0)] <- sapply(which(output$attachment == 1 & output$reposted == 0), function(k) ifelse(is.null(items$attachments[k][[1]]$doc$access_key), NA, ifelse(length(items$attachments[k][[1]]$doc$access_key) == 1, unlist(items$attachments[k][[1]]$doc$access_key), list(items$attachments[k][[1]]$doc$access_key)) ) )
-    output$attached_doc_access_key[which(output$attachment == 1 & output$reposted == 1)] <- sapply(which(output$attachment == 1 & output$reposted == 1), function(k) ifelse(is.null(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key), NA, ifelse(length(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key) == 1, unlist(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key), list(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key[!is.na(items$copy_history[k][[1]]$attachments[[1]]$doc$access_key)])) ))
-    return(output)
+    offsets <- 100 * 0:floor(fetched$response$count/100)
+    if (length(offsets) > 1) {
+      cat('VK API allows retrieving wall posts by chunks of 100 posts All posts are retrieved iteratively.\n')
+      howmany <- suppressWarnings(ifelse(readline(prompt = paste0('There will be around ', length(offsets),' iterations. Do you want all of them? Type no if not: ')) == 'no', 
+                                         as.numeric(readline(prompt = paste0('Type the number of iterations you want (<= ', length(offsets),'): '))), 
+                                         length(offsets)))
+      
+      while (is.na(howmany)) {
+        howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('Wrong input! Try again! Type the number of iterations you want (<= ', length(offsets),'): '))))
+      }
+    } else{
+      howmany <- 1
+    }
+    st <- proc.time()
+    cat('Iterations started.\n')
+    for (j in 1:howmany) {
+      if (j == 1) {
+        total_output <- extract_wall(user_id = -group_id, access_token = access_token, offset = offsets[j])
+      } else {
+        output <- extract_wall(user_id = -group_id, access_token = access_token, offset = offsets[j])
+        total_output <- rbind(total_output, output)
+      }
+      cat('Iteration', j, '/', howmany,'done\n')
+      Sys.sleep(1)
+    }
+    fin <- proc.time()
+    cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
+    return(total_output)
   }
 }
 
@@ -809,13 +805,11 @@ getGroupPostLikes <- function(group_id, post_id, access_token) {
 
 
 # Chance city and country codes into names: get all dataset, then covern city codes to city names for each country separately?
-# Trace all likes etc to posts on the wall: likes.getList
-# Merge comments into Wall? 
 
 # Check: all functions return a data.frame with (if AAA %in% names(items)) check
 
 # Add:
-# wall.search: search post on a wall by a criterion
 # groups.isMember
+# wall.search: search post on a wall by a criterion
 # getUserPostCommentLikes
 
