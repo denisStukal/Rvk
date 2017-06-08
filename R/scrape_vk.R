@@ -578,16 +578,26 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
 }
 
 
-# getUserCommentLikes <- function(user_id, comment_id, access_token) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/likes.getList?type=comment&owner_id=', user_id,'&item_id=', comment_id,'&count=1000&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
+getUserWallSearchCount <- function(user_id, query, access_token) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', user_id,'&query=', query,'&count=2&v=5.64&access_token=', access_token))
   if ('error' %in% names(fetched)) {
     cat('ERROR: ', fetched$error$error_msg, '\n')
     return(NULL)
   } else {
-    items <- fetched$response$items
-    return(items)
+    return(fetched$response$count)
   }
-} 
+}
+
+
+getUserWallSearch <- function(user_id, query, access_token) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', user_id,'&query=', query,'&count=2&v=5.64&access_token=', access_token))
+  if ('error' %in% names(fetched)) {
+    cat('ERROR: ', fetched$error$error_msg, '\n')
+    return(NULL)
+  } else {
+    return(fetched$response$items)
+  }
+}
 
 
 checkUsersAreMembers <- function(user_ids, group_id, access_token) {
@@ -815,6 +825,28 @@ getGroupPostLikes <- function(group_id, post_id, access_token) {
 
 getGroupPostComments(group_id, post_id, access_token) {
   fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', -group_id, '&post_id=', post_id, '&need_likes=1&count=100&preview_length=0&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=1&access_token=', access_token))
+  if ('error' %in% names(fetched)) {
+    cat('ERROR: ', fetched$error$error_msg, '\n')
+    return(NULL)
+  } else {
+    return(fetched$response$items)
+  }
+}
+
+
+getGroupWallSearchCount <- function(group_id, query, access_token) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', -group_id,'&query=', query,'&count=2&v=5.64&access_token=', access_token))
+  if ('error' %in% names(fetched)) {
+    cat('ERROR: ', fetched$error$error_msg, '\n')
+    return(NULL)
+  } else {
+    return(fetched$response$count)
+  }
+}
+
+
+getGroupWallSearch <- function(group_id, query, access_token) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', -group_id,'&query=', query,'&count=2&v=5.64&access_token=', access_token))
   if ('error' %in% names(fetched)) {
     cat('ERROR: ', fetched$error$error_msg, '\n')
     return(NULL)
