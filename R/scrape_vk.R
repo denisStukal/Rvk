@@ -590,6 +590,17 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
 }
 
 
+checkUsersAreMembers <- function(user_ids, group_id, access_token) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/groups.isMember?group_id=', group_id,'&user_ids=', paste(user_ids, collapse = ','),'&extended=1&v=5.64&access_token=', access_token))
+  if ('error' %in% names(fetched)) {
+    cat('ERROR: ', fetched$error$error_msg, '\n')
+    return(NULL)
+  } else {
+    return(fetched$response$member)
+  }
+}
+
+
 #----------------- GROUPS -----------------#
 getGroupMembers <- function(group_id, access_token, count = 1000) {
   st <- proc.time()
