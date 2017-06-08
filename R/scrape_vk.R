@@ -1,6 +1,109 @@
 
 
 
+#------- Internal:
+store_universities <- function(items, output) {
+  if (class(items) == 'list') {
+    output$universities_number <- sapply(1:length(items), function(k) ifelse( 'universities' %in% names(items[[k]]) & length(items[[k]][['universities']]) > 0, length(items[[k]]$universities), NA ))
+    univ <- sapply(1:length(items), function(k) ifelse( 'universities' %in% names(items[[k]]) & length(items[[k]][['universities']]) > 0, list(items[[k]][['universities']]), data.frame('graduation' = NA)))
+    if (length(which(!is.na(univ))) > 0) {
+      univ <- lapply(1:length(univ), function(k) ifelse(is.na(univ[[k]]), NA, lapply(1:length(univ[[k]]), function(m) data.frame('id' = ifelse(is.null(univ[[k]][[m]][['id']]), NA, as.character(univ[[k]][[m]][['id']])),
+                                                                                                                  'country' = ifelse(is.null(univ[[k]][[m]][['country']]), NA, as.character(univ[[k]][[m]][['country']])),
+                                                                                                                  'city' = ifelse(is.null(univ[[k]][[m]][['city']]), NA, as.character(univ[[k]][[m]][['city']])),
+                                                                                                                  'name' = ifelse(is.null(univ[[k]][[m]][['name']]), NA, as.character(univ[[k]][[m]][['name']])),
+                                                                                                                  'faculty' = ifelse(is.null(univ[[k]][[m]][['faculty']]), NA, as.character(univ[[k]][[m]][['faculty']])),
+                                                                                                                  'faculty_name' = ifelse(is.null(univ[[k]][[m]][['faculty_name']]), NA, as.character(univ[[k]][[m]][['faculty_name']])),
+                                                                                                                  'chair' = ifelse(is.null(univ[[k]][[m]][['chair']]), NA, as.character(univ[[k]][[m]][['chair']])),
+                                                                                                                  'chair_name' = ifelse(is.null(univ[[k]][[m]][['chair_name']]), NA, as.character(univ[[k]][[m]][['chair_name']])),
+                                                                                                                  'graduation' = ifelse(is.null(univ[[k]][[m]][['graduation']]), NA, as.character(univ[[k]][[m]][['graduation']])),
+                                                                                                                  'education_form' = ifelse(is.null(univ[[k]][[m]][['education_form']]), NA, as.character(univ[[k]][[m]][['education_form']])),
+                                                                                                                  'education_status' = ifelse(is.null(univ[[k]][[m]][['education_status']]), NA, as.character(univ[[k]][[m]][['education_status']])),
+                                                                                                                  stringsAsFactors = F) )))
+    } else {
+      univ <- do.call('rbind', univ)
+    }
+    output$universities <- univ
+    return(output)
+  } else {
+    if (class(items) == 'data.frame') {
+      output$universities_number <- sapply(1:nrow(items), function(k) ifelse( 'universities' %in% names(items) & nrow(items[['universities']][[k]]) > 0, nrow(items$universities[[k]]), NA ))
+      univ <- sapply(1:nrow(items), function(k) ifelse( 'universities' %in% names(items) & nrow(items[['universities']][[k]]) > 0, list(items[['universities']][[k]]), data.frame('graduation' = NA)))
+      output$universities <- univ
+      return(output)
+    } else {
+      cat('ERROR: Fetched data in the wrong format')
+      return(NULL)
+    }
+  }
+}
+
+
+store_jobs <- function(items, output) {
+  if (class(items) == 'list') {
+    output$jobs_number <- sapply(1:length(items), function(k) ifelse( 'career' %in% names(items[[k]]) & length(items[[k]][['career']]) > 0, length(items[[k]]$career), NA ))
+    jobs <- sapply(1:length(items), function(k) ifelse( 'career' %in% names(items[[k]]) & length(items[[k]][['career']]) > 0, list(items[[k]][['career']]), data.frame('graduation' = NA)))
+    if (length(which(!is.na(jobs))) > 0) {
+      jobs <- lapply(1:length(jobs), function(k) ifelse(is.na(jobs[[k]]), NA, lapply(1:length(jobs[[k]]), function(m) data.frame('company' = ifelse(is.null(jobs[[k]][[m]][['company']]), NA, as.character(jobs[[k]][[m]][['company']])),
+                                                                                                                                  'country_id' = ifelse(is.null(jobs[[k]][[m]][['country_id']]), NA, as.character(jobs[[k]][[m]][['country_id']])),
+                                                                                                                                  'city_id' = ifelse(is.null(jobs[[k]][[m]][['city_id']]), NA, as.character(jobs[[k]][[m]][['city_id']])),
+                                                                                                                                  'from' = ifelse(is.null(jobs[[k]][[m]][['from']]), NA, as.character(jobs[[k]][[m]][['from']])),
+                                                                                                                                  'until' = ifelse(is.null(jobs[[k]][[m]][['until']]), NA, as.character(jobs[[k]][[m]][['until']])),
+                                                                                                                                  'position' = ifelse(is.null(jobs[[k]][[m]][['position']]), NA, as.character(jobs[[k]][[m]][['position']])),
+                                                                                                                                  stringsAsFactors = F) )) )
+    } else {
+      jobs <- do.call('rbind', jobs)
+    }
+    output$career <- jobs
+    return(output)
+  } else {
+    if (class(items) == 'data.frame') {
+      output$jobs_number <- sapply(1:nrow(items), function(k) ifelse( 'career' %in% names(items) & nrow(items[['career']][[k]]) > 0, nrow(items$career[[k]]), NA ))
+      jobs <- sapply(1:nrow(items), function(k) ifelse( 'career' %in% names(items) & nrow(items[['career']][[k]]) > 0, list(items[['career']][[k]]), data.frame('graduation' = NA)))
+      output$career <- jobs
+      return(output)
+    } else {
+      cat('ERROR: Fetched data in the wrong format')
+      return(NULL)
+    }
+  }
+}
+
+
+store_schools <- function(items, output) {
+  if (class(items) == 'list') {
+    output$schools_number <- sapply(1:length(items), function(k) ifelse( 'schools' %in% names(items[[k]]) & length(items[[k]][['schools']]) > 0, length(items[[k]]$schools), NA ))
+    schools <- sapply(1:length(items), function(k) ifelse( 'schools' %in% names(items[[k]]) & length(items[[k]][['schools']]) > 0, list(items[[k]][['schools']]), data.frame('graduation' = NA)))
+    if (length(which(!is.na(schools))) > 0) {
+      schools <- lapply(1:length(schools), function(k) ifelse(is.na(schools[[k]]), NA, lapply(1:length(schools[[k]]), function(m) data.frame('id' = ifelse(is.null(schools[[k]][[m]][['id']]), NA, as.character(schools[[k]][[m]][['id']])),
+                                                                                                                                              'country' = ifelse(is.null(schools[[k]][[m]][['country']]), NA, as.character(schools[[k]][[m]][['country']])),
+                                                                                                                                              'city' = ifelse(is.null(schools[[k]][[m]][['city']]), NA, as.character(schools[[k]][[m]][['city']])),
+                                                                                                                                              'name' = ifelse(is.null(schools[[k]][[m]][['name']]), NA, as.character(schools[[k]][[m]][['name']])),
+                                                                                                                                              'year_from' = ifelse(is.null(schools[[k]][[m]][['year_from']]), NA, as.character(schools[[k]][[m]][['year_from']])),
+                                                                                                                                              'year_to' = ifelse(is.null(schools[[k]][[m]][['year_to']]), NA, as.character(schools[[k]][[m]][['year_to']])),
+                                                                                                                                              'year_graduated' = ifelse(is.null(schools[[k]][[m]][['year_graduated']]), NA, as.character(schools[[k]][[m]][['year_graduated']])),
+                                                                                                                                              'class' = ifelse(is.null(schools[[k]][[m]][['class']]), NA, as.character(schools[[k]][[m]][['class']])),
+                                                                                                                                              'speciality' = ifelse(is.null(schools[[k]][[m]][['speciality']]), NA, as.character(schools[[k]][[m]][['speciality']])), stringsAsFactors = F) )))
+    } else {
+      schools <- do.call('rbind', schools)
+    }
+    output$schools <- schools
+    return(output)
+  } else {
+    if (class(items) == 'data.frame') {
+      output$schools_number <- sapply(1:nrow(items), function(k) ifelse( 'schools' %in% names(items) & nrow(items[['schools']][[k]]) > 0, nrow(items$schools[[k]]), NA ))
+      schools <- sapply(1:nrow(items), function(k) ifelse( 'schools' %in% names(items) & nrow(items[['schools']][[k]]) > 0, list(items[['schools']][[k]]), data.frame('graduation' = NA)))
+      output$schools <- schools
+      return(output)
+    } else {
+      cat('ERROR: Fetched data in the wrong format')
+      return(NULL)
+    }
+  }
+}
+
+
+
+#------- Authorization:
 makeAccessToken <- function(token_file_name) {
   ok <- tryCatch(token_file_name, error = function(e) {cat('No token_file_name argument provided!\n'); return(FALSE)})
   if (ok != FALSE) {
@@ -81,174 +184,13 @@ getUserInfo <- function(user_ids, access_token, num_universities = 1, num_school
     if ('last_seen' %in% names(items)) {
       output$last_seen <- items$last_seen$time
     }
-    if ('universities' %in% names(items)) {
-      output$number_universities <- nrow(items$universities[[1]])
-      univ <- items$universities[[1]]
-      if (length(nrow(univ)) > 0) {
-        # check if graduation is available
-        if ('graduation' %in% names(univ)) {
-          univ <- univ[order(univ$graduation, decreasing = T),]
-          output$university_last_graduation <- univ$graduation[1]
-        } else {
-          output$university_last_graduation <- NA
-        }
-        if ('name' %in% names(univ)) {
-          output$university_last <- univ$name[1]
-        } else {
-          output$university_last <- NA
-        }
-        if ('faculty_name' %in% names(univ)) {
-          output$university_last_department <- univ$faculty_name[1]
-        } else {
-          output$university_last_department <- NA
-        }
-        if ('education_status' %in% names(univ)) {
-          output$university_last_degree <- univ$education_status[1]
-        } else {
-          output$university_last_degree <- NA
-        }
-        if (num_universities > 1) {
-          for (i in 2:num_universities) {
-            output[[paste0('university_', i, 'tolast_graduation')]] <- univ$graduation[i]
-            output[[paste0('university_', i, 'tolast_department')]] <- univ$faculty_name[i]
-            output[[paste0('university_', i, 'tolast_degree')]] <- univ$education_status[i]
-          }
-        }
-      } else { # if univ is empty
-        output$university_last <- NA
-        output$university_last_graduation <- NA
-        output$university_last_department <- NA
-        output$university_last_degree <- NA
-        if (num_universities > 1) {
-          for (i in 2:num_universities) {
-            output[[paste0('university_', i, 'tolast_graduation')]] <- NA
-            output[[paste0('university_', i, 'tolast_department')]] <- NA
-            output[[paste0('university_', i, 'tolast_degree')]] <- NA
-          }
-        }
-      }
-    }
-    if ('schools' %in% names(items)) {
-      output$number_schools <- nrow(items$schools[[1]])
-      school <- items$schools[[1]]
-      if (length(nrow(school)) > 0) {
-        # check of year_to is in school
-        if ('year_to' %in% names(school)) {
-          school <- school[order(school$year_to, decreasing = T),]
-          output$school_last_to_year <- school$year_to[1]
-        } else {
-          output$school_last_to_year <- NA
-        }
-        if ('name' %in% names(school)) {
-          output$school_last <- school$name[1]
-        } else {
-          output$school_last <- NA
-        }
-        if ('year_from' %in% names(school)) {
-          output$school_last_from_year <- school$year_from[1]
-        } else {
-          output$school_last_from_year <- NA
-        }
-        if ('country' %in% names(school)) {
-          output$school_last_country <- school$country[1]
-        } else {
-          output$school_last_country <- NA
-        }
-        if ('city' %in% names(school)) {
-          output$school_last_city <- school$city[1]
-        } else {
-          output$school_last_city <- NA
-        }
-        if (num_schools > 1) {
-          for (i in 2:num_schools) {
-            output[[paste0('school_', i, 'tolast_from_year')]] <- school$year_from[i]
-            output[[paste0('school_', i, 'tolast_to_year')]] <- school$year_to[i]
-            output[[paste0('school_', i, 'tolast_country')]] <- school$country[i]
-            output[[paste0('school_', i, 'tolast_city')]] <- school$city[i]
-          }
-        }
-      } else { # if school is empty
-        output$school_last <- NA
-        output$school_last_from_year <- NA
-        output$school_last_to_year <- NA
-        output$school_last_country <- NA
-        output$school_last_city <- NA
-        if (num_schools > 1) {
-          for (i in 2:num_schools) {
-            output[[paste0('school_', i, 'tolast_from_year')]] <- NA
-            output[[paste0('school_', i, 'tolast_to_year')]] <- NA
-            output[[paste0('school_', i, 'tolast_country')]] <- NA
-            output[[paste0('school_', i, 'tolast_city')]] <- NA
-          }
-        }
-      }
-    }
-    
-    if ('career' %in% names(items) ) {
-      output$number_jobs <- nrow(items$career[[1]])
-      jobs <- items$career[[1]]
-      if (length(nrow(jobs)) > 0) {
-        if ('from' %in% names(jobs)) {
-          jobs <- jobs[order(jobs$from, decreasing = T),]
-          output$job_last_start_year <- jobs$from[1]
-        } else {
-          output$job_last_start_year <- NA
-        }
-        if ('until' %in% names(jobs)) {
-          output$job_last_end_year <- jobs$until[1]
-        } else {
-          output$job_last_end_year <- NA
-        }
-        if ('company' %in% names(jobs)) {
-          output$job_last <- jobs$company[1]
-        } else {
-          output$job_last <- NA
-        }
-        if ('position' %in% names(jobs)) {
-          output$job_last_position <- jobs$position[1]
-        } else {
-          output$job_last_position <- NA
-        }
-        if ('city_id' %in% names(jobs)) {
-          output$job_last_city <- jobs$city_id[1]
-        } else {
-          output$job_last_city <- NA
-        }
-        if ('country_id' %in% names(jobs)) {
-          output$job_last_country <- jobs$country_id[1]
-        } else {
-          output$job_last_country <- NA
-        }
-        if (num_jobs > 1) {
-          for (i in 2:num_jobs) {
-            output[[paste0('job_', i, 'tolast_start_year')]] <- jobs$from[i]
-            output[[paste0('job_', i, 'tolast_end_year')]] <- jobs$until[i]
-            output[[paste0('job_', i, 'tolast_position')]] <- jobs$position[i]
-            output[[paste0('job_', i, 'tolast_city')]] <- jobs$city_id[i]
-            output[[paste0('job_', i, 'tolast_country')]] <- jobs$country_id[i]
-          }
-        }
-      } else { # if jobs is empty
-        output$job_last <- NA
-        output$job_last_start_year <- NA
-        output$job_last_end_year <- NA
-        output$job_last_position <- NA
-        output$job_last_city <- NA
-        output$job_last_country <- NA
-        if (num_jobs > 1) {
-          for (i in 2:num_jobs) {
-            output[[paste0('job_', i, 'tolast_start_year')]] <- NA
-            output[[paste0('job_', i, 'tolast_end_year')]] <- NA
-            output[[paste0('job_', i, 'tolast_position')]] <- NA
-            output[[paste0('job_', i, 'tolast_city')]] <- NA
-            output[[paste0('job_', i, 'tolast_country')]] <- NA
-          }
-        }
-      }
-    }
+    output <- store_universities(items = items, output = output)
+    output <- store_schools(items = items, output = output)
+    output <- store_jobs(items = items, output = output)
     return(output)
   }
 }
+
 
 
 getMultiUserInfo <- function(user_ids, access_token) {
@@ -1134,44 +1076,6 @@ getGroupPostLikes <- function(group_id, post_id, access_token) {
 } 
 
 
-#------- Internal:
-store_universities <- function(items, output) {
-  output$universities_number <- sapply(1:length(items), function(k) ifelse( 'universities' %in% names(items[[k]]) & length(items[[k]][['universities']]) > 0, length(items[[k]]$universities), NA ))
-  # univ - list of data.frame with data on universities, NA otherwise
-  univ <- sapply(1:length(items), function(k) ifelse( 'universities' %in% names(items[[k]]) & length(items[[k]][['universities']]) > 0, list(items[[k]][['universities']]), data.frame('graduation' = NA)))
-  univ[which(!is.na(univ))]  <- sapply(which(!is.na(univ)), function(k) as.data.frame(do.call('rbind', univ[[k]])))
-  output$universities <- univ
-  return(output)
-}
-
-
-store_jobs <- function(items, output) {
-  output$jobs_number <- sapply(1:length(items), function(k) ifelse( 'career' %in% names(items[[k]]) & length(items[[k]][['career']]) > 0, length(items[[k]]$career), NA ))
-  jobs <- sapply(1:length(items), function(k) ifelse( 'career' %in% names(items[[k]]) & length(items[[k]][['career']]) > 0, list(items[[k]][['career']]), data.frame('graduation' = NA)))
-  jobs[which(!is.na(jobs))] <- lapply(which(!is.na(jobs)), function(k) data.frame('company' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$company), jobs[[k]][[m]]$company, NA)),
-                                                                                  'country_id' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$country_id), jobs[[k]][[m]]$country_id, NA)),
-                                                                                  'city_id' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$city_id), jobs[[k]][[m]]$city_id, NA)),
-                                                                                  'from' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$from), jobs[[k]][[m]]$from, NA)),
-                                                                                  'until' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$until), jobs[[k]][[m]]$until, NA)),
-                                                                                  'position' = sapply(1:length(jobs[[k]]), function(m) ifelse(!is.null(jobs[[k]][[m]]$position), jobs[[k]][[m]]$position, NA)), stringsAsFactors = F))
-  output$jobs <- jobs
-  return(output)
-}
-
-
-store_schools <- function(items, output) {
-  output$schools_number <- sapply(1:length(items), function(k) ifelse( 'schools' %in% names(items[[k]]) & length(items[[k]][['schools']]) > 0, length(items[[k]]$schools), NA ))
-  schools <- sapply(1:length(items), function(k) ifelse( 'schools' %in% names(items[[k]]) & length(items[[k]][['schools']]) > 0, list(items[[k]][['schools']]), data.frame('graduation' = NA)))
-  schools[which(!is.na(schools))] <- lapply(which(!is.na(schools)), function(k) data.frame('id' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$id), schools[[k]][[m]]$id, NA)),
-                                                                                           'country_id' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$country), schools[[k]][[m]]$country, NA)),
-                                                                                           'city_id' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$city), schools[[k]][[m]]$city, NA)),
-                                                                                           'name' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$name), schools[[k]][[m]]$name, NA)),
-                                                                                           'class' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$class), schools[[k]][[m]]$class, NA)),
-                                                                                           'year_from' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$year_from), schools[[k]][[m]]$year_from, NA)),
-                                                                                           'year_to' = sapply(1:length(schools[[k]]), function(m) ifelse(!is.null(schools[[k]][[m]]$year_to), schools[[k]][[m]]$year_to, NA)), stringsAsFactors = F))
-  output$schools <- schools
-  return(output)
-}
 
 
 # Chance city and country codes into names: get all dataset, then covern city codes to city names for each country separately?
@@ -1181,8 +1085,6 @@ store_schools <- function(items, output) {
 # Check: date and date_POSIXct
 # Check: all functions return a data.frame with (if AAA %in% names(items)) check
 # Why user_idS in getUserInfo?
-
-# getUserInfo - not more than 49 users
 
 # Add:
 # wall.search: search post on a wall by a criterion
