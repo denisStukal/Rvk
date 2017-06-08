@@ -285,93 +285,12 @@ getUserFollowersInfo <- function(user_id, access_token, num_universities = 1, nu
     if ('last_seen' %in% names(items)) {
       output$last_seen <- items$last_seen$time
     }
-    if ('universities' %in% names(items)) {
-      output$number_universities <- sapply(1:nrow(output), function(k) ifelse(is.null(items$universities[[k]]), NA,  ifelse(length(items$universities[[k]]) == 0, NA, nrow(items$universities[[k]])) ))
-      there_are_universities <- which(!is.na(output$number_universities))
-      universities <- items$universities
-      for (pos in there_are_universities) {
-        if ('from' %in% names(universities[[pos]])) {
-          universities[[pos]] <- universities[[pos]][order(universities[[pos]]$from, decreasing = T),]
-        }
-      }
-      output$university_last <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'name' %in% names(universities[[k]]), universities[[k]]$name[1], NA ) )
-      output$university_last_id <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'id' %in% names(universities[[k]]), universities[[k]]$id[1], NA ) )
-      output$university_last_end_year <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'graduation' %in% names(universities[[k]]), universities[[k]]$graduation[1], NA ) )
-      output$university_last_city <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'city' %in% names(universities[[k]]), universities[[k]]$city[1], NA ) )
-      output$university_last_country <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'country' %in% names(universities[[k]]), universities[[k]]$country[1], NA ) )
-      output$university_last_department <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'faculty_name' %in% names(universities[[k]]), universities[[k]]$faculty_name[1], NA ) )
-      output$university_last_education_form <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'education_form' %in% names(universities[[k]]), universities[[k]]$education_form[1], NA ) )
-      output$university_last_degree <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'education_status' %in% names(universities[[k]]), universities[[k]]$education_status[1], NA ) )
-      
-      if (num_universities > 1) {
-        for (i in 2:num_universities) {
-          output[[paste0('university_', i, 'tolast')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'name' %in% names(universities[[k]]), universities[[k]]$name[i], NA ) )
-          output[[paste0('university_', i, 'tolast_id')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'id' %in% names(universities[[k]]), universities[[k]]$id[i], NA ) )
-          output[[paste0('university_', i, 'tolast_end_year')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'graduation' %in% names(universities[[k]]), universities[[k]]$graduation[i], NA ) )
-          output[[paste0('university_', i, 'tolast_city')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'city' %in% names(universities[[k]]), universities[[k]]$city[i], NA ) )
-          output[[paste0('university_', i, 'tolast_country')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'country' %in% names(universities[[k]]), universities[[k]]$country[i], NA ) )
-          output[[paste0('university_', i, 'tolast_department')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'faculty_name' %in% names(universities[[k]]), universities[[k]]$faculty_name[1], NA ) )
-          output[[paste0('university_', i, 'tolast_education_form')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'education_form' %in% names(universities[[k]]), universities[[k]]$education_form[i], NA ) )
-          output[[paste0('university_', i, 'tolast_degree')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'education_status' %in% names(universities[[k]]), universities[[k]]$education_status[i], NA ) )
-        }
-      }
-    }
-    if ('schools' %in% names(items)) {
-      output$number_schools <- sapply(1:nrow(output), function(k) ifelse(is.null(items$schools[[k]]), NA,  ifelse(length(items$schools[[k]]) == 0, NA, nrow(items$schools[[k]])) ))
-      there_are_schools <- which(!is.na(output$number_schools))
-      schools <- items$schools
-      for (pos in there_are_schools) {
-        if ('from' %in% names(schools[[pos]])) {
-          schools[[pos]] <- schools[[pos]][order(schools[[pos]]$from, decreasing = T),]
-        }
-      }
-      output$school_last <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'name' %in% names(schools[[k]]), schools[[k]]$name[1], NA ) )
-      output$school_last_id <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'id' %in% names(schools[[k]]), schools[[k]]$id[1], NA ) )
-      output$school_last_start_year <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'year_from' %in% names(schools[[k]]), schools[[k]]$year_from[1], NA ) )
-      output$school_last_end_year <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'year_to' %in% names(schools[[k]]), schools[[k]]$year_to[1], NA ) )
-      output$school_last_city <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'city' %in% names(schools[[k]]), schools[[k]]$city[1], NA ) )
-      output$school_last_country <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'country' %in% names(schools[[k]]), schools[[k]]$country[1], NA ) )
-      if (num_schools > 1) {
-        for (i in 2:num_schools) {
-          output[[paste0('school_', i, 'tolast')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'name' %in% names(schools[[k]]), schools[[k]]$name[i], NA ) )
-          output[[paste0('school_', i, 'tolast_id')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'id' %in% names(schools[[k]]), schools[[k]]$id[i], NA ) )
-          output[[paste0('school_', i, 'tolast_start_year')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'year_from' %in% names(schools[[k]]), schools[[k]]$year_from[i], NA ) )
-          output[[paste0('school_', i, 'tolast_end_year')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'year_to' %in% names(schools[[k]]), schools[[k]]$year_to[i], NA ) )
-          output[[paste0('school_', i, 'tolast_city')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'city' %in% names(schools[[k]]), schools[[k]]$city[i], NA ) )
-          output[[paste0('school_', i, 'tolast_country')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'country' %in% names(schools[[k]]), schools[[k]]$country[i], NA ) )
-        }
-      }
-    }
-    if ('career' %in% names(items) ) {
-      output$number_jobs <- sapply(1:nrow(output), function(k) ifelse(is.null(items$career[[k]]), NA,  ifelse(length(items$career[[k]]) == 0, NA, nrow(items$career[[k]])) ))
-      there_are_jobs <- which(!is.na(output$number_jobs))
-      jobs <- items$career
-      for (pos in there_are_jobs) {
-        if ('from' %in% names(jobs[[pos]])) {
-          jobs[[pos]] <- jobs[[pos]][order(jobs[[pos]]$from, decreasing = T),]
-        }
-      }
-      output$job_last <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'company' %in% names(jobs[[k]]), jobs[[k]]$company[1], NA ) )
-      output$job_last_start_year <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'from' %in% names(jobs[[k]]), jobs[[k]]$from[1], NA ) )
-      output$job_last_end_year <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'until' %in% names(jobs[[k]]), jobs[[k]]$until[1], NA ) )
-      output$job_last_position <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'position' %in% names(jobs[[k]]), jobs[[k]]$position[1], NA ) )
-      output$job_last_city <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'city_id' %in% names(jobs[[k]]), jobs[[k]]$city_id[1], NA ) )
-      output$job_last_country <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'country_id' %in% names(jobs[[k]]), jobs[[k]]$country_id[1], NA ) )
-      if (num_jobs > 1) {
-        for (i in 2:num_jobs) {
-          output[[paste0('job_', i, 'tolast')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'company' %in% names(jobs[[k]]), jobs[[k]]$company[i], NA ) )
-          output[[paste0('job_', i, 'tolast_start_year')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'from' %in% names(jobs[[k]]), jobs[[k]]$from[i], NA ) )
-          output[[paste0('job_', i, 'tolast_end_year')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'until' %in% names(jobs[[k]]), jobs[[k]]$until[i], NA ) )
-          output[[paste0('job_', i, 'tolast_position')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'position' %in% names(jobs[[k]]), jobs[[k]]$position[i], NA ) )
-          output[[paste0('job_', i, 'tolast_city')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'city_id' %in% names(jobs[[k]]), jobs[[k]]$city_id[i], NA ) )
-          output[[paste0('job_', i, 'tolast_country')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'country_id' %in% names(jobs[[k]]), jobs[[k]]$country_id[i], NA ) )
-        }
-      }
-    }
+    output <- store_universities(items = items, output = output)
+    output <- store_schools(items = items, output = output)
+    output <- store_jobs(items = items, output = output)
     return(output)
   }
 }
-
 
 
 getUserFriendsNum <- function(user_id, access_token) {
@@ -437,89 +356,9 @@ getUserFriendsInfo <- function(user_id, access_token, num_universities = 1, num_
     if ('last_seen' %in% names(items)) {
       output$last_seen <- items$last_seen$time
     }
-    if ('universities' %in% names(items)) {
-      output$number_universities <- sapply(1:nrow(output), function(k) ifelse(is.null(items$universities[[k]]), NA,  ifelse(length(items$universities[[k]]) == 0, NA, nrow(items$universities[[k]])) ))
-      there_are_universities <- which(!is.na(output$number_universities))
-      universities <- items$universities
-      for (pos in there_are_universities) {
-        if ('from' %in% names(universities[[pos]])) {
-          universities[[pos]] <- universities[[pos]][order(universities[[pos]]$from, decreasing = T),]
-        }
-      }
-      output$university_last <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'name' %in% names(universities[[k]]), universities[[k]]$name[1], NA ) )
-      output$university_last_id <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'id' %in% names(universities[[k]]), universities[[k]]$id[1], NA ) )
-      output$university_last_end_year <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'graduation' %in% names(universities[[k]]), universities[[k]]$graduation[1], NA ) )
-      output$university_last_city <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'city' %in% names(universities[[k]]), universities[[k]]$city[1], NA ) )
-      output$university_last_country <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'country' %in% names(universities[[k]]), universities[[k]]$country[1], NA ) )
-      output$university_last_department <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'faculty_name' %in% names(universities[[k]]), universities[[k]]$faculty_name[1], NA ) )
-      output$university_last_education_form <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'education_form' %in% names(universities[[k]]), universities[[k]]$education_form[1], NA ) )
-      output$university_last_degree <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'education_status' %in% names(universities[[k]]), universities[[k]]$education_status[1], NA ) )
-      
-      if (num_universities > 1) {
-        for (i in 2:num_universities) {
-          output[[paste0('university_', i, 'tolast')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'name' %in% names(universities[[k]]), universities[[k]]$name[i], NA ) )
-          output[[paste0('university_', i, 'tolast_id')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'id' %in% names(universities[[k]]), universities[[k]]$id[i], NA ) )
-          output[[paste0('university_', i, 'tolast_end_year')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'graduation' %in% names(universities[[k]]), universities[[k]]$graduation[i], NA ) )
-          output[[paste0('university_', i, 'tolast_city')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'city' %in% names(universities[[k]]), universities[[k]]$city[i], NA ) )
-          output[[paste0('university_', i, 'tolast_country')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'country' %in% names(universities[[k]]), universities[[k]]$country[i], NA ) )
-          output[[paste0('university_', i, 'tolast_department')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'faculty_name' %in% names(universities[[k]]), universities[[k]]$faculty_name[1], NA ) )
-          output[[paste0('university_', i, 'tolast_education_form')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'education_form' %in% names(universities[[k]]), universities[[k]]$education_form[i], NA ) )
-          output[[paste0('university_', i, 'tolast_degree')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_universities & 'education_status' %in% names(universities[[k]]), universities[[k]]$education_status[i], NA ) )
-        }
-      }
-    }
-    if ('schools' %in% names(items)) {
-      output$number_schools <- sapply(1:nrow(output), function(k) ifelse(is.null(items$schools[[k]]), NA,  ifelse(length(items$schools[[k]]) == 0, NA, nrow(items$schools[[k]])) ))
-      there_are_schools <- which(!is.na(output$number_schools))
-      schools <- items$schools
-      for (pos in there_are_schools) {
-        if ('from' %in% names(schools[[pos]])) {
-          schools[[pos]] <- schools[[pos]][order(schools[[pos]]$from, decreasing = T),]
-        }
-      }
-      output$school_last <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'name' %in% names(schools[[k]]), schools[[k]]$name[1], NA ) )
-      output$school_last_id <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'id' %in% names(schools[[k]]), schools[[k]]$id[1], NA ) )
-      output$school_last_start_year <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'year_from' %in% names(schools[[k]]), schools[[k]]$year_from[1], NA ) )
-      output$school_last_end_year <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'year_to' %in% names(schools[[k]]), schools[[k]]$year_to[1], NA ) )
-      output$school_last_city <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'city' %in% names(schools[[k]]), schools[[k]]$city[1], NA ) )
-      output$school_last_country <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'country' %in% names(schools[[k]]), schools[[k]]$country[1], NA ) )
-      if (num_schools > 1) {
-        for (i in 2:num_schools) {
-          output[[paste0('school_', i, 'tolast')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'name' %in% names(schools[[k]]), schools[[k]]$name[i], NA ) )
-          output[[paste0('school_', i, 'tolast_id')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'id' %in% names(schools[[k]]), schools[[k]]$id[i], NA ) )
-          output[[paste0('school_', i, 'tolast_start_year')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'year_from' %in% names(schools[[k]]), schools[[k]]$year_from[i], NA ) )
-          output[[paste0('school_', i, 'tolast_end_year')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'year_to' %in% names(schools[[k]]), schools[[k]]$year_to[i], NA ) )
-          output[[paste0('school_', i, 'tolast_city')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'city' %in% names(schools[[k]]), schools[[k]]$city[i], NA ) )
-          output[[paste0('school_', i, 'tolast_country')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_schools & 'country' %in% names(schools[[k]]), schools[[k]]$country[i], NA ) )
-        }
-      }
-    }
-    if ('career' %in% names(items) ) {
-      output$number_jobs <- sapply(1:nrow(output), function(k) ifelse(is.null(items$career[[k]]), NA,  ifelse(length(items$career[[k]]) == 0, NA, nrow(items$career[[k]])) ))
-      there_are_jobs <- which(!is.na(output$number_jobs))
-      jobs <- items$career
-      for (pos in there_are_jobs) {
-        if ('from' %in% names(jobs[[pos]])) {
-          jobs[[pos]] <- jobs[[pos]][order(jobs[[pos]]$from, decreasing = T),]
-        }
-      }
-      output$job_last <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'company' %in% names(jobs[[k]]), jobs[[k]]$company[1], NA ) )
-      output$job_last_start_year <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'from' %in% names(jobs[[k]]), jobs[[k]]$from[1], NA ) )
-      output$job_last_end_year <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'until' %in% names(jobs[[k]]), jobs[[k]]$until[1], NA ) )
-      output$job_last_position <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'position' %in% names(jobs[[k]]), jobs[[k]]$position[1], NA ) )
-      output$job_last_city <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'city_id' %in% names(jobs[[k]]), jobs[[k]]$city_id[1], NA ) )
-      output$job_last_country <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'country_id' %in% names(jobs[[k]]), jobs[[k]]$country_id[1], NA ) )
-      if (num_jobs > 1) {
-        for (i in 2:num_jobs) {
-          output[[paste0('job_', i, 'tolast')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'company' %in% names(jobs[[k]]), jobs[[k]]$company[i], NA ) )
-          output[[paste0('job_', i, 'tolast_start_year')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'from' %in% names(jobs[[k]]), jobs[[k]]$from[i], NA ) )
-          output[[paste0('job_', i, 'tolast_end_year')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'until' %in% names(jobs[[k]]), jobs[[k]]$until[i], NA ) )
-          output[[paste0('job_', i, 'tolast_position')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'position' %in% names(jobs[[k]]), jobs[[k]]$position[i], NA ) )
-          output[[paste0('job_', i, 'tolast_city')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'city_id' %in% names(jobs[[k]]), jobs[[k]]$city_id[i], NA ) )
-          output[[paste0('job_', i, 'tolast_country')]] <- sapply(1:nrow(output), function(k) ifelse(k %in% there_are_jobs & 'country_id' %in% names(jobs[[k]]), jobs[[k]]$country_id[i], NA ) )
-        }
-      }
-    }
+    output <- store_universities(items = items, output = output)
+    output <- store_schools(items = items, output = output)
+    output <- store_jobs(items = items, output = output)
     return(output)
   }
 }
