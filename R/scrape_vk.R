@@ -507,25 +507,13 @@ getUserWall <- function(user_id, access_token) {
 }
 
 
-getUserPostComments <- function(user_id, post_id, access_token) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', user_id,'&post_id=', post_id,'&need_likes=1&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
+getUserPostComments(user_id, post_id, access_token) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', user_id, '&post_id=', post_id, '&need_likes=1&count=100&preview_length=0&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=1&access_token=', access_token))
   if ('error' %in% names(fetched)) {
     cat('ERROR: ', fetched$error$error_msg, '\n')
     return(NULL)
   } else {
-    items <- fetched$response$items
-    output <- data.frame('id' = items$id,
-                         'from_id' = items$from_id,
-                         'date' = items$date,
-                         'text' = items$text,
-                         'likes_count' = items$likes$count,
-                         'reply_to_user' = items$reply_to_user,
-                         'reply_to_comment' = items$reply_to_comment, stringsAsFactors = F)
-    if (nrow(output) == 0) {
-      return(NULL)
-    } else {
-      return(output)
-    }
+    return(fetched$response$items)
   }
 }
 
@@ -588,6 +576,18 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
     }
   }
 }
+
+
+# getUserCommentLikes <- function(user_id, comment_id, access_token) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/likes.getList?type=comment&owner_id=', user_id,'&item_id=', comment_id,'&count=1000&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
+  if ('error' %in% names(fetched)) {
+    cat('ERROR: ', fetched$error$error_msg, '\n')
+    return(NULL)
+  } else {
+    items <- fetched$response$items
+    return(items)
+  }
+} 
 
 
 checkUsersAreMembers <- function(user_ids, group_id, access_token) {
@@ -813,6 +813,15 @@ getGroupPostLikes <- function(group_id, post_id, access_token) {
 } 
 
 
+getGroupPostComments(group_id, post_id, access_token) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', -group_id, '&post_id=', post_id, '&need_likes=1&count=100&preview_length=0&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=1&access_token=', access_token))
+  if ('error' %in% names(fetched)) {
+    cat('ERROR: ', fetched$error$error_msg, '\n')
+    return(NULL)
+  } else {
+    return(fetched$response$items)
+  }
+}
 
 
 # Chance city and country codes into names: get all dataset, then covern city codes to city names for each country separately?
@@ -820,7 +829,6 @@ getGroupPostLikes <- function(group_id, post_id, access_token) {
 # Check: all functions return a data.frame with (if AAA %in% names(items)) check
 
 # Add:
-# groups.isMember
 # wall.search: search post on a wall by a criterion
-# getUserPostCommentLikes
+
 
