@@ -823,7 +823,7 @@ getGroupPostLikes <- function(group_id, post_id, access_token) {
 } 
 
 
-getGroupPostComments(group_id, post_id, access_token) {
+getGroupPostComments <- function(group_id, post_id, access_token) {
   fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', -group_id, '&post_id=', post_id, '&need_likes=1&count=100&preview_length=0&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=1&access_token=', access_token))
   if ('error' %in% names(fetched)) {
     cat('ERROR: ', fetched$error$error_msg, '\n')
