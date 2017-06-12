@@ -603,6 +603,79 @@ getUserPostLikes <- function(user_id, post_id, access_token) {
 } 
 
 
+getUserWallLikes <- function(user_id, access_token, verbose = FALSE) {
+  #--- Get posts number and request the number of posts to retrieve
+  wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', user_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
+  if ('error' %in% names(wall)) {
+    cat('ERROR: ', wall$error$error_msg, '\n')
+    return(NULL)
+  } else {
+    num_posts <- wall$response$count
+    if (num_posts == 0) {
+      cat('The user has no posts\n')
+      return(NULL)
+    } else {
+      # offsets <- 100 * 0:floor(wall$response$count/100)
+      howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('There are ', num_posts,' posts. Type the number of recent posts you want to consider (<= ', num_posts,'): '))))
+      howmany <- ifelse(howmany <= num_posts, howmany, num_posts)
+      while (is.na(howmany)) {
+        howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('Wrong input! Try again! Type the number of recent posts you want to consider (<= ', num_posts,'): '))))
+      }
+      #--- Get all requested posts
+      cat('Retrieveing all requested posts\n')
+      if (howmany <= 100) {
+        all_requested_posts <- wall$response$items$id
+      } else {
+        all_requested_posts <- wall$response$items$id
+        offsets <- 100 * 1:floor(howmany/100)
+        for (w in 1:length(offsets)) {
+          wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', user_id,'&count=100&offset=', offsets[w],'&v=5.64&extended=0&access_token=', access_token))
+          all_requested_posts <- c(all_requested_posts, wall$response$items$id)
+        }
+        all_requested_posts <- unique(all_requested_posts)
+      }
+      cat('All requested posts retrieved\n')
+      #--- Iteratively get likes for every requested post
+      total_output <- list()
+      st <- proc.time()
+      cat('Iterations started.\n')
+      for (j in 1:howmany) {
+        total_output[[j]] <- getUserPostLikes(user_id = user_id, post_id = all_requested_posts[j], access_token = access_token)
+        names(total_output)[j] <- all_requested_posts[j]
+        if (verbose) {
+          cat('post', j, '(out of', howmany, ') done\n')
+        }
+        Sys.sleep(1)
+      }
+      fin <- proc.time()
+      cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
+      return(total_output)
+    } # end: else below return(NULL)
+  } # end: else below return(NULL) below ERROR
+}
+
+
+getUserMostLikingUsers <- function(user_id, access_token, num_users = 'all', verbose = FALSE) {
+  if (num_users != 'all') {
+    while (is.na(as.numeric(num_users))) {
+      num_users <- suppressWarnings(readline(prompt = paste0('Wrong input! Try again! How many most liking users to retrieve? Type all or an integer: ')))
+      if (num_users != 'all') {
+        num_users <- as.numeric(num_users)
+      }
+    }
+  }
+  likes <- getUserWallLikes(user_id = user_id, access_token = access_token, verbose = verbose)
+  likes <- do.call('c', likes)
+  tb <- table(likes)
+  output <- data.frame('user_id' = names(tb), 'num_likes' = as.numeric(tb), stringsAsFactors = F)
+  output <- output[order(output$num_likes, decreasing = T),]
+  if (num_users != 'all') {
+    output <- output[1:num_users,]
+  }
+  return(output)
+}
+
+
 getUserPostReposts <- function(user_id, post_id, access_token) {
   fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&need_likes=1&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
   if ('error' %in% names(fetched)) {
