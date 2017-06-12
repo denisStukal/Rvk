@@ -733,10 +733,8 @@ getGroupWall <- function(group_id, access_token) {
     offsets <- 100 * 0:floor(fetched$response$count/100)
     if (length(offsets) > 1) {
       cat('VK API allows retrieving wall posts by chunks of 100 posts All posts are retrieved iteratively.\n')
-      howmany <- suppressWarnings(ifelse(readline(prompt = paste0('There will be around ', length(offsets),' iterations. Do you want all of them? Type no if not: ')) == 'no', 
-                                         as.numeric(readline(prompt = paste0('Type the number of iterations you want (<= ', length(offsets),'): '))), 
-                                         length(offsets)))
-      
+      howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('There will be around ', length(offsets),' iterations. Type the number of iterations you want (<= ', length(offsets),'): '))))
+      howmany <- ifelse(howmany <= length(offsets), howmany, length(offsets))
       while (is.na(howmany)) {
         howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('Wrong input! Try again! Type the number of iterations you want (<= ', length(offsets),'): '))))
       }
@@ -769,17 +767,22 @@ getGroupPostComments <- function(group_id, post_id, access_token) {
     return(NULL)
   } else {
     items <- fetched$response$items
-    output <- data.frame('id' = items$id,
-                         'from_id' = items$from_id,
-                         'date' = items$date,
-                         'text' = items$text,
-                         'likes_count' = items$likes$count,
-                         'reply_to_user' = items$reply_to_user,
-                         'reply_to_comment' = items$reply_to_comment, stringsAsFactors = F)
-    if (nrow(output) == 0) {
+    if (is.null(nrow(items))) {
       return(NULL)
-    } else {
-      return(output)
+    } else{ 
+      output <- data.frame('id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
+                           'from_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
+                           'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
+                           'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
+                           'likes_count' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes_count']), NA, items[k, 'likes_count'])),
+                           'reply_to_user' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reply_to_user']), NA, items[k, 'reply_to_user'])),
+                           'reply_to_comment' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reply_to_comment']), NA, items[k, 'reply_to_comment'])), stringsAsFactors = F)
+      output$to_post_id <- post_id
+      if (nrow(output) == 0) {
+        return(NULL)
+      } else {
+        return(output)
+      }
     }
   }
 }
@@ -791,21 +794,24 @@ getGroupPostReposts <- function(group_id, post_id, access_token) {
     cat('ERROR: ', fetched$error$error_msg, '\n')
     return(NULL)
   } else {
-    items <- fetched$response$items
-    items <- items[,-which(names(items) == 'copy_history')]
-    output <- data.frame('post_id' = items$id,
-                         'user_id' = items$from_id,
-                         'date' = items$date,
-                         'text' = items$text,
-                         'device' = items$post_source$platform,
-                         'num_comments' = items$comments$count,
-                         'num_likes' = items$likes$count,
-                         'num_reposts' = items$reposts$count,
-                         'num_views' = items$views$count, stringsAsFactors = F)
-    if (nrow(output) == 0) {
+    if (is.null(nrow(items))) {
       return(NULL)
-    } else {
-      return(output)
+    } else{ 
+      output <- data.frame('post_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'post_id']), NA, items[k, 'post_id'])),
+                           'user_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'user_id']), NA, items[k, 'user_id'])),
+                           'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
+                           'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
+                           'device' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'device']), NA, items[k, 'device'])),
+                           'num_comments' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'num_comments']), NA, items[k, 'num_comments'])),
+                           'num_likes' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'num_likes']), NA, items[k, 'num_likes'])), 
+                           'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'num_reposts']), NA, items[k, 'num_reposts'])), 
+                           'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'num_views']), NA, items[k, 'num_views'])), stringsAsFactors = F)
+      output$to_post_id <- post_id
+      if (nrow(output) == 0) {
+        return(NULL)
+      } else {
+        return(output)
+      }
     }
   }
 }
@@ -821,17 +827,6 @@ getGroupPostLikes <- function(group_id, post_id, access_token) {
     return(items)
   }
 } 
-
-
-getGroupPostComments <- function(group_id, post_id, access_token) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', -group_id, '&post_id=', post_id, '&need_likes=1&count=100&preview_length=0&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=1&access_token=', access_token))
-  if ('error' %in% names(fetched)) {
-    cat('ERROR: ', fetched$error$error_msg, '\n')
-    return(NULL)
-  } else {
-    return(fetched$response$items)
-  }
-}
 
 
 getGroupWallSearchCount <- function(group_id, query, access_token) {
@@ -862,5 +857,7 @@ getGroupWallSearch <- function(group_id, query, access_token) {
 
 # Add:
 # wall.search: search post on a wall by a criterion
+
+# Make function that will get all likes to all posts on the wall
 
 
