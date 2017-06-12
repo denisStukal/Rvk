@@ -1119,7 +1119,7 @@ getGroupWallLikes <- function(group_id, access_token, verbose = FALSE) {
 }
 
 
-getMostLikingUsers <- function(group_id, access_token, num_users, verbose = FALSE) {
+getGroupMostLikingUsers <- function(group_id, access_token, num_users = 'all', verbose = FALSE) {
   if (num_users != 'all') {
     while (is.na(as.numeric(num_users))) {
       num_users <- suppressWarnings(readline(prompt = paste0('Wrong input! Try again! How many most liking users to retrieve? Type all or an integer: ')))
