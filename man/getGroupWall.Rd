@@ -20,7 +20,7 @@ getGroupWall(group_id, access_token)
 
 
 \arguments{
-  \item{group_id}{A numeric id for the VK group. Available from the group's page (see Details).}
+  \item{group_id}{A numeric ID for the VK group. Available from the group's page (see Details).}
   \item{access_token}{ Your access token (see ?makeAccessToken).}
 }
 

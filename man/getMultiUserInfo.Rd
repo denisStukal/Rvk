@@ -1,26 +1,26 @@
-\name{getUserInfo}
+\name{getMultiUserInfo}
 
 
-\alias{getUserInfo}
+\alias{getMultiUserInfo}
 
 
 \title{
-Get Information about a User
+Get Information about Multiple Users
 }
 
 
 \description{
-Returns a data.frame with publicly available information about a user.
+Returns a data.frame with publicly available information about multiple users. 
 }
 
 
 \usage{
-getUserInfo(user_id, access_token)
+getMultiUserInfo(user_ids, access_token)
 }
 
 
 \arguments{
-  \item{user_id}{A numeric user ID. Available from the user's page (see Details).}
+  \item{user_ids}{Vector of numeric user IDs. Available from users' pages (see Details).}
   \item{access_token}{ Your access token (see ?makeAccessToken). }
 }
 
@@ -61,8 +61,8 @@ Denis Stukal \url{denis.stukal@nyu.edu}
 \examples{
 \dontrun{
 mytoken = 'XXXXXXXXXXXXXX'
-userid = AAAAAAAA
-dat <- getUserInfo(user_id = userid, access_token = mytoken)
+userids = c(AAAAAAAA, BBBBBB, CCCCCCC)
+dat <- getMultiUserInfo(user_ids = userids, access_token = mytoken)
 str(dat)
 }
 }

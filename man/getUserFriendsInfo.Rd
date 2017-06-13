@@ -15,24 +15,20 @@ Returns a data.frame with publicly available information about friends of a user
 
 
 \usage{
-getUserFriendsInfo(user_id, access_token, 
-    num_universities = 1, num_schools = 1, num_jobs = 1)
+getUserFriendsInfo(user_id, access_token)
 }
 
 
 \arguments{
   \item{user_id}{Numeric ID of the user whose friends are requested. Available from the user's page (see Details).}
   \item{access_token}{ Your access token (see ?makeAccessToken). }
-  \item{num_universities}{Number of universities to be returned (default is 1). See Details.}
-  \item{num_schools}{Number of schools to be returned (default is 1). See Details.}
-  \item{num_jobs}{Number of jobs to be returned (default is 1). See Details.}
 }
 
 
 \details{
 Many users have their ID as part of their URL address (e.g. https://vk.com/idUSERID, where USERID is a sequence of numbers). In the event users have screen names that do not show their ID in the URL, one can access them by clicking on the user's post (or photo, video, etc.): the post will open with a new URL of the form https://vk.com/SCREENNAME?w=wall-USERID_POSTID). Pass USERID (without the minus sign in front of it) to the function call. 
 
-Universities, schools, and jobs are sorted from last to first by the start year (if available). Last position is returned by default.
+Universities, schools, and jobs are returned as data.frames.
 
 }
 

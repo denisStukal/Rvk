@@ -17,7 +17,6 @@ Returns a data.frame with publicly available information on members of a VK grou
 
 \usage{
 getGroupMembers(group_id, access_token, 
-    num_universities = 1,  num_schools = 1, num_jobs = 1, 
     count = 1000)
 }
 
@@ -25,9 +24,6 @@ getGroupMembers(group_id, access_token,
 \arguments{
   \item{group_id}{ A numeric id for the VK group. Available from the group's page (see Details).}
   \item{access_token}{Your access token (see ?makeAccessToken).}
-  \item{num_universities}{Number of universities to be returned (default is 1). Universities are returned from the last to the first, thus by default the last university is returned.}
-  \item{num_schools}{Number of schools to be returned (default is 1). Schools are returned from the last to the first, thus by default the last school is returned.}
-  \item{num_jobs}{Number of jobs to be returned (default is 1). Jobs are returned from the last to the first, thus by default the last job is returned.}
   \item{count}{The number of group members to be returned. The maximum possible number allowed by VK API is 1000 (default).}
 }
 

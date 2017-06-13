@@ -20,15 +20,9 @@ getGroupInfo(group_id, access_token, links = TRUE)
 
 
 \arguments{
-  \item{group_id}{
-A numeric id for the VK group. Available from the group's page (see Details).
-}
-  \item{access_token}{
-Your access token (see ?makeAccessToken).
-}
-  \item{links}{
-If TRUE (default), includes a data.frame with information on the links posted on the group's webpage as a columns of the returned data.frame. 
-}
+  \item{group_id}{A numeric ID for the VK group. Available from the group's page (see Details).}
+  \item{access_token}{Your access token (see ?makeAccessToken).}
+  \item{links}{If TRUE (default), includes a data.frame with information on the links posted on the group's webpage as a columns of the returned data.frame.}
 }
 
 
