@@ -7,7 +7,9 @@ store_universities <- function(items, output) {
     output$universities_number <- sapply(1:length(items), function(k) ifelse( 'universities' %in% names(items[[k]]) & length(items[[k]][['universities']]) > 0, length(items[[k]]$universities), NA ))
     univ <- sapply(1:length(items), function(k) ifelse( 'universities' %in% names(items[[k]]) & length(items[[k]][['universities']]) > 0, list(items[[k]][['universities']]), data.frame('graduation' = NA)))
     if (length(which(!is.na(univ))) > 0) {
-      univ <- lapply(1:length(univ), function(k) ifelse(is.na(univ[[k]]), NA, lapply(1:length(univ[[k]]), function(m) data.frame('id' = ifelse(is.null(univ[[k]][[m]][['id']]), NA, as.character(univ[[k]][[m]][['id']])),
+      univ <- lapply(1:length(univ), 
+                     function(k) ifelse(is.na(univ[[k]]), NA, lapply(1:length(univ[[k]]), 
+                                                                     function(m) data.frame('id' = ifelse(is.null(univ[[k]][[m]][['id']]), NA, as.character(univ[[k]][[m]][['id']])),
                                                                                                                   'country' = ifelse(is.null(univ[[k]][[m]][['country']]), NA, as.character(univ[[k]][[m]][['country']])),
                                                                                                                   'city' = ifelse(is.null(univ[[k]][[m]][['city']]), NA, as.character(univ[[k]][[m]][['city']])),
                                                                                                                   'name' = ifelse(is.null(univ[[k]][[m]][['name']]), NA, as.character(univ[[k]][[m]][['name']])),
@@ -43,7 +45,9 @@ store_jobs <- function(items, output) {
     output$jobs_number <- sapply(1:length(items), function(k) ifelse( 'career' %in% names(items[[k]]) & length(items[[k]][['career']]) > 0, length(items[[k]]$career), NA ))
     jobs <- sapply(1:length(items), function(k) ifelse( 'career' %in% names(items[[k]]) & length(items[[k]][['career']]) > 0, list(items[[k]][['career']]), data.frame('graduation' = NA)))
     if (length(which(!is.na(jobs))) > 0) {
-      jobs <- lapply(1:length(jobs), function(k) ifelse(is.na(jobs[[k]]), NA, lapply(1:length(jobs[[k]]), function(m) data.frame('company' = ifelse(is.null(jobs[[k]][[m]][['company']]), NA, as.character(jobs[[k]][[m]][['company']])),
+      jobs <- lapply(1:length(jobs), 
+                     function(k) ifelse(is.na(jobs[[k]]), NA, lapply(1:length(jobs[[k]]), 
+                                                                     function(m) data.frame('company' = ifelse(is.null(jobs[[k]][[m]][['company']]), NA, as.character(jobs[[k]][[m]][['company']])),
                                                                                                                                   'country_id' = ifelse(is.null(jobs[[k]][[m]][['country_id']]), NA, as.character(jobs[[k]][[m]][['country_id']])),
                                                                                                                                   'city_id' = ifelse(is.null(jobs[[k]][[m]][['city_id']]), NA, as.character(jobs[[k]][[m]][['city_id']])),
                                                                                                                                   'from' = ifelse(is.null(jobs[[k]][[m]][['from']]), NA, as.character(jobs[[k]][[m]][['from']])),
@@ -74,7 +78,9 @@ store_schools <- function(items, output) {
     output$schools_number <- sapply(1:length(items), function(k) ifelse( 'schools' %in% names(items[[k]]) & length(items[[k]][['schools']]) > 0, length(items[[k]]$schools), NA ))
     schools <- sapply(1:length(items), function(k) ifelse( 'schools' %in% names(items[[k]]) & length(items[[k]][['schools']]) > 0, list(items[[k]][['schools']]), data.frame('graduation' = NA)))
     if (length(which(!is.na(schools))) > 0) {
-      schools <- lapply(1:length(schools), function(k) ifelse(is.na(schools[[k]]), NA, lapply(1:length(schools[[k]]), function(m) data.frame('id' = ifelse(is.null(schools[[k]][[m]][['id']]), NA, as.character(schools[[k]][[m]][['id']])),
+      schools <- lapply(1:length(schools), 
+                        function(k) ifelse(is.na(schools[[k]]), NA, lapply(1:length(schools[[k]]), 
+                                                                           function(m) data.frame('id' = ifelse(is.null(schools[[k]][[m]][['id']]), NA, as.character(schools[[k]][[m]][['id']])),
                                                                                                                                               'country' = ifelse(is.null(schools[[k]][[m]][['country']]), NA, as.character(schools[[k]][[m]][['country']])),
                                                                                                                                               'city' = ifelse(is.null(schools[[k]][[m]][['city']]), NA, as.character(schools[[k]][[m]][['city']])),
                                                                                                                                               'name' = ifelse(is.null(schools[[k]][[m]][['name']]), NA, as.character(schools[[k]][[m]][['name']])),
@@ -91,7 +97,8 @@ store_schools <- function(items, output) {
   } else {
     if (class(items) == 'data.frame') {
       output$schools_number <- sapply(1:nrow(items), function(k) ifelse( 'schools' %in% names(items) & nrow(items[['schools']][[k]]) > 0, nrow(items$schools[[k]]), NA ))
-      schools <- sapply(1:nrow(items), function(k) ifelse( 'schools' %in% names(items) & nrow(items[['schools']][[k]]) > 0, list(items[['schools']][[k]]), data.frame('graduation' = NA)))
+      schools <- sapply(1:nrow(items), 
+                        function(k) ifelse( 'schools' %in% names(items) & nrow(items[['schools']][[k]]) > 0, list(items[['schools']][[k]]), data.frame('graduation' = NA)))
       output$schools <- schools
       return(output)
     } else {
@@ -469,41 +476,43 @@ getUserGroupsInfo <- function(user_id, access_token) {
 }
 
 
-getUserWall <- function(user_id, access_token) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', user_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
-  if ('error' %in% names(fetched)) {
-    cat('ERROR: ', fetched$error$error_msg, '\n')
+getUserWall <- function(user_id, access_token, n = NULL) {
+  wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', user_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
+  if ('error' %in% names(wall)) {
+    cat('ERROR: ', wall$error$error_msg, '\n')
     return(NULL)
   } else {
-    items <- fetched$response$items
-    offsets <- 100 * 0:floor(fetched$response$count/100)
-    if (length(offsets) > 1) {
-      cat('VK API allows retrieving wall posts by chunks of 100 posts All posts are retrieved iteratively.\n')
-      howmany <- suppressWarnings(ifelse(readline(prompt = paste0('There will be around ', length(offsets),' iterations. Do you want all of them? Type no if not: ')) == 'no', 
-                                         as.numeric(readline(prompt = paste0('Type the number of iterations you want (<= ', length(offsets),'): '))), 
-                                         length(offsets)))
-      
-      while (is.na(howmany)) {
-        howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('Wrong input! Try again! Type the number of iterations you want (<= ', length(offsets),'): '))))
+    num_posts <- wall$response$count
+    if (num_posts == 0) {
+      cat('The user has no posts\n')
+      return(NULL)
+    } else {
+      if (is.null(n)) {
+        howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('There are ', num_posts,' posts. Type the number of recent posts you want to consider (<= ', num_posts,'): '))))
+        howmany <- ifelse(howmany <= num_posts, howmany, num_posts)
+        while (is.null(howmany)) {
+          howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('Wrong input! Try again! Type the number of recent posts you want to consider (<= ', num_posts,'): '))))
+        }
+      } else {
+        howmany <- n
       }
-    } else{
-      howmany <- 1
     }
+    offsets <- 100 * 0:floor(howmany/100)
     st <- proc.time()
     cat('Iterations started.\n')
-    for (j in 1:howmany) {
+    for (j in 1:length(offsets)) {
       if (j == 1) {
         total_output <- extract_wall(user_id = user_id, access_token = access_token, offset = offsets[j])
       } else {
         output <- extract_wall(user_id = user_id, access_token = access_token, offset = offsets[j])
         total_output <- rbind(total_output, output)
       }
-      cat('Iteration', j, '/', howmany,'done\n')
+      cat('Iteration', j, '/', length(offsets),'done\n')
       Sys.sleep(1)
     }
     fin <- proc.time()
     cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
-    return(total_output)
+    return(total_output[1:howmany,])
   }
 }
 
@@ -928,39 +937,43 @@ getGroupInfo <- function(group_id, access_token, links = TRUE) {
 }
 
 
-getGroupWall <- function(group_id, access_token) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
-  if ('error' %in% names(fetched)) {
-    cat('ERROR: ', fetched$error$error_msg, '\n')
+getGroupWall <- function(group_id, access_token, n = NULL) {
+  wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
+  if ('error' %in% names(wall)) {
+    cat('ERROR: ', wall$error$error_msg, '\n')
     return(NULL)
   } else {
-    items <- fetched$response$items
-    offsets <- 100 * 0:floor(fetched$response$count/100)
-    if (length(offsets) > 1) {
-      cat('VK API allows retrieving wall posts by chunks of 100 posts All posts are retrieved iteratively.\n')
-      howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('There will be around ', length(offsets),' iterations. Type the number of iterations you want (<= ', length(offsets),'): '))))
-      howmany <- ifelse(howmany <= length(offsets), howmany, length(offsets))
-      while (is.na(howmany)) {
-        howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('Wrong input! Try again! Type the number of iterations you want (<= ', length(offsets),'): '))))
+    num_posts <- wall$response$count
+    if (num_posts == 0) {
+      cat('The user has no posts\n')
+      return(NULL)
+    } else {
+      if (is.null(n)) {
+        howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('There are ', num_posts,' posts. Type the number of recent posts you want to consider (<= ', num_posts,'): '))))
+        howmany <- ifelse(howmany <= num_posts, howmany, num_posts)
+        while (is.null(howmany)) {
+          howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('Wrong input! Try again! Type the number of recent posts you want to consider (<= ', num_posts,'): '))))
+        }
+      } else {
+        howmany <- n
       }
-    } else{
-      howmany <- 1
     }
+    offsets <- 100 * 0:floor(howmany/100)
     st <- proc.time()
     cat('Iterations started.\n')
-    for (j in 1:howmany) {
+    for (j in 1:length(offsets)) {
       if (j == 1) {
         total_output <- extract_wall(user_id = -group_id, access_token = access_token, offset = offsets[j])
       } else {
         output <- extract_wall(user_id = -group_id, access_token = access_token, offset = offsets[j])
         total_output <- rbind(total_output, output)
       }
-      cat('Iteration', j, '/', howmany,'done\n')
+      cat('Iteration', j, '/', length(offsets),'done\n')
       Sys.sleep(1)
     }
     fin <- proc.time()
     cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
-    return(total_output)
+    return(total_output[1:howmany,])
   }
 }
 
