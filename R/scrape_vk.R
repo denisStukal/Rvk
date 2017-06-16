@@ -1173,7 +1173,7 @@ getGroupPostLikes <- function(group_id, post_id, access_token) {
 } 
 
 
-getGroupWallLikes <- function(group_id, access_token, num_posts = 100, verbose = FALSE) {
+getGroupWallLikes <- function(group_id, access_token, num_posts = 100, verbose = TRUE) {
   #--- Get posts number and request the number of posts to retrieve
   wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
   if ('error' %in% names(wall)) {
@@ -1209,7 +1209,6 @@ getGroupWallLikes <- function(group_id, access_token, num_posts = 100, verbose =
       fin <- proc.time()
       cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
       return(total_output)
-    } # end: else below return(NULL)
   } # end: else below return(NULL) below ERROR
 }
 

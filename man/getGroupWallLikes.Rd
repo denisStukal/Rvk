@@ -15,7 +15,7 @@ Returns a list of vectors with user IDs who liked posts on a group page. Each ve
 
 
 \usage{
-getGroupWallLikes(group_id, access_token, verbose = FALSE)
+getGroupWallLikes(group_id, access_token, num_posts = 100, verbose = TRUE)
 }
 
 

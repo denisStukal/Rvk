@@ -15,7 +15,8 @@ Returns a data.frame with IDs of users who liked posts on a group page, and the 
 
 
 \usage{
-getGroupMostLikingUsers(group_id, access_token, num_posts = 100, num_users = 'all', verbose = FALSE)
+getGroupMostLikingUsers(group_id, access_token, num_posts = 100, 
+    num_users = 'all', verbose = TRUE)
 }
 
 
