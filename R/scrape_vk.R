@@ -511,7 +511,7 @@ getUserWall <- function(user_id, access_token, n = NULL) {
       Sys.sleep(1)
     }
     fin <- proc.time()
-    cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
+    cat('Total time:', round(as.numeric((fin-st)[3]/60),3), 'minutes\n')
     return(total_output[1:howmany,])
   }
 }
@@ -972,7 +972,7 @@ getGroupWall <- function(group_id, access_token, n = NULL) {
       Sys.sleep(1)
     }
     fin <- proc.time()
-    cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
+    cat('Total time:', round(as.numeric((fin-st)[3]/60),3), 'minutes\n')
     return(total_output[1:howmany,])
   }
 }
