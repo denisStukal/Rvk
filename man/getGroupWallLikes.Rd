@@ -22,6 +22,7 @@ getGroupWallLikes(group_id, access_token, verbose = FALSE)
 \arguments{
   \item{group_id}{ A numeric ID for the VK group. Available from the group's page (see Details). }
   \item{access_token}{ Your access token (see ?makeAccessToken). }
+  \item{num_posts}{Number of posts from the wall to retrieve}
   \item{verbose}{Boolean: if FALSE (default), informational messages are suppressed.}
 }
 

@@ -15,15 +15,16 @@ Returns a data.frame with IDs of users who liked posts on a group page, and the 
 
 
 \usage{
-getGroupMostLikingUsers(group_id, access_token, num_users = 'all', verbose = FALSE)
+getGroupMostLikingUsers(group_id, access_token, num_posts = 100, num_users = 'all', verbose = FALSE)
 }
 
 
 \arguments{
   \item{group_id}{A numeric ID for the VK group. Available from the group's page (see Details).}
   \item{access_token}{Your access token (see ?makeAccessToken).}
+  \item{num_posts}{Number of posts to consider.}
   \item{num_users}{Number of top users with most likes to report. Either 'all' (default) or numeric.}
-  \item{verbose}{Boolean: suppress informational messages if FALSE (default).}
+  \item{verbose}{Boolean: print informational messages if TRUE (default).}
 }
 
 

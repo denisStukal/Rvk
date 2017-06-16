@@ -1173,31 +1173,20 @@ getGroupPostLikes <- function(group_id, post_id, access_token) {
 } 
 
 
-getGroupWallLikes <- function(group_id, access_token, verbose = FALSE) {
+getGroupWallLikes <- function(group_id, access_token, num_posts = 100, verbose = FALSE) {
   #--- Get posts number and request the number of posts to retrieve
   wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
   if ('error' %in% names(wall)) {
     cat('ERROR: ', wall$error$error_msg, '\n')
     return(NULL)
   } else {
-    num_posts <- wall$response$count
-    if (num_posts == 0) {
-      cat('The user has no posts\n')
-      return(NULL)
+    #--- Get all requested posts
+    cat('Retrieveing all requested posts\n')
+    if (num_posts <= 100) {
+      all_requested_posts <- wall$response$items$id
     } else {
-      # offsets <- 100 * 0:floor(wall$response$count/100)
-      howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('There are ', num_posts,' posts. Type the number of recent posts you want to consider (<= ', num_posts,'): '))))
-      howmany <- ifelse(howmany <= num_posts, howmany, num_posts)
-      while (is.na(howmany)) {
-        howmany <- suppressWarnings(as.numeric(readline(prompt = paste0('Wrong input! Try again! Type the number of recent posts you want to consider (<= ', num_posts,'): '))))
-      }
-      #--- Get all requested posts
-      cat('Retrieveing all requested posts\n')
-      if (howmany <= 100) {
         all_requested_posts <- wall$response$items$id
-      } else {
-        all_requested_posts <- wall$response$items$id
-        offsets <- 100 * 1:floor(howmany/100)
+        offsets <- 100 * 1:floor(num_posts/100)
         for (w in 1:length(offsets)) {
           wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&offset=', offsets[w],'&v=5.64&extended=0&access_token=', access_token))
           all_requested_posts <- c(all_requested_posts, wall$response$items$id)
@@ -1209,11 +1198,11 @@ getGroupWallLikes <- function(group_id, access_token, verbose = FALSE) {
       total_output <- list()
       st <- proc.time()
       cat('Iterations started.\n')
-      for (j in 1:howmany) {
+      for (j in 1:num_posts) {
           total_output[[j]] <- getGroupPostLikes(group_id = group_id, post_id = all_requested_posts[j], access_token = access_token)
           names(total_output)[j] <- all_requested_posts[j]
           if (verbose) {
-            cat('post', j, '(out of', howmany, ') done\n')
+            cat('post', j, '(out of', num_posts, ') done\n')
           }
           Sys.sleep(1)
       }
@@ -1225,7 +1214,7 @@ getGroupWallLikes <- function(group_id, access_token, verbose = FALSE) {
 }
 
 
-getGroupMostLikingUsers <- function(group_id, access_token, num_users = 'all', verbose = FALSE) {
+getGroupMostLikingUsers <- function(group_id, access_token, num_posts = 100, num_users = 'all', verbose = TRUE) {
   if (num_users != 'all') {
     while (is.na(as.numeric(num_users))) {
       num_users <- suppressWarnings(readline(prompt = paste0('Wrong input! Try again! How many most liking users to retrieve? Type all or an integer: ')))
@@ -1234,7 +1223,7 @@ getGroupMostLikingUsers <- function(group_id, access_token, num_users = 'all', v
       }
     }
   }
-  likes <- getGroupWallLikes(group_id = group_id, access_token = access_token, verbose = verbose)
+  likes <- getGroupWallLikes(group_id = group_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
   likes <- do.call('c', likes)
   tb <- table(likes)
   output <- data.frame('user_id' = names(tb), 'num_likes' = as.numeric(tb), stringsAsFactors = F)
