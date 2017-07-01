@@ -763,6 +763,8 @@ getUserWallReposts <- function(user_id, access_token, verbose = FALSE) {
 }
 
 
+
+
 getUserWallSearchCount <- function(user_id, query, access_token) {
   fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', user_id,'&query=', query,'&count=2&v=5.64&access_token=', access_token))
   if ('error' %in% names(fetched)) {
@@ -1265,8 +1267,9 @@ searchGroupWall <- function(group_id, query, access_token) {
 # Check: all functions return a data.frame with (if AAA %in% names(items)) check
 
 # Add:
-# wall.search: search post on a wall by a criterion
+# getUserMostRepostingUsers (...Group...)
+# getUserMostCommentingUsers (...Group...)
 
 # check dates
-
+ 
 
