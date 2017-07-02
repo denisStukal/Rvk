@@ -833,27 +833,102 @@ getUserWallSearchCount <- function(user_id, query, access_token) {
 }
 
 
-searchUserWall <- function(user_id, query, access_token) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', user_id,'&query=', query,'&count=100&v=5.64&access_token=', access_token))
+searchUserWall <- function(user_id, query, access_token, verbose = FALSE) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', user_id,'&query=', query,'&count=100&offset=0&v=5.64&access_token=', access_token))
   if ('error' %in% names(fetched)) {
     stop(fetched$error$error_msg)
-  } 
+  }
+  st <- proc.time()
   if (length(fetched$response$items) > 0) {
-    output <- data.frame('object_id' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$id[k]),
-                         'from_user_id' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$from_id[k]),
-                         'user_id_wall' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$owner_id[k]),
-                         'date' = as.Date(as.POSIXct(fetched$response$items$date, origin="1970-01-01")),
-                         'date_POSIXct' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$date[k]),
-                         'post_type' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$post_type[k]),
-                         'to_post_id' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$post_id[k]),
-                         'text' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$text[k]),
-                         'comments_count' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$comments$count[k]),
-                         'likes_count' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$likes$count[k]),
-                         'reposts_count' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$reposts$count[k]),
-                         'views_count' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$views$count[k]), stringsAsFactors = F)
+    output <- data.frame('object_id' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$id[k]), stringsAsFactors = F)
+    
+    if ('from_id' %in% names(fetched$response$items)) {
+      output$from_user_id <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$from_id[k])
+    }
+    
+    if ('owner_id' %in% names(fetched$response$items)) {
+      output$group_id_wall <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$owner_id[k])
+    }
+    
+    if ('date' %in% names(fetched$response$items)) {
+      output$date <- as.Date(as.POSIXct(fetched$response$items$date, origin="1970-01-01"))
+      output$date_POSIXct <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$date[k])
+    }
+    if ('post_type' %in% names(fetched$response$items)) {
+      output$post_type <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$post_type[k])
+    }
+    if ('text' %in% names(fetched$response$items)) {
+      output$text <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$text[k])
+    }
+    
+    if ('comments' %in% names(fetched$response$items)) {
+      output$comments_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$comments$count[k])
+    }
+    if ('likes' %in% names(fetched$response$items)) {
+      output$likes_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$likes$count[k])
+    }
+    if ('reposts' %in% names(fetched$response$items)) {
+      output$reposts_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$reposts$count[k])
+    }
+    if ('views' %in% names(fetched$response$items)) {
+      output$views_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$views$count[k])
+    }
   } else {
     output <- NULL
   }
+  if (fetched$response$count > 100) {
+    offsets <- 100 * seq(1, floor(fetched$response$count / 100))
+    if (verbose) {
+      cat(paste0('Iteration 1 (out of ', length(offsets)+1, ') done\n'))
+    }
+    
+    m = 0
+    for (off in offsets) {
+      m <- m + 1
+      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', user_id,'&query=', query,'&count=100&offset=', off,'&v=5.64&access_token=', access_token))
+      Sys.sleep(1)
+      output2 <- data.frame('object_id' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$id[k]), stringsAsFactors = F)
+      
+      if ('from_id' %in% names(fetched$response$items)) {
+        output2$from_user_id <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$from_id[k])
+      }
+      
+      if ('owner_id' %in% names(fetched$response$items)) {
+        output2$group_id_wall <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$owner_id[k])
+      }
+      
+      if ('date' %in% names(fetched$response$items)) {
+        output2$date <- as.Date(as.POSIXct(fetched$response$items$date, origin="1970-01-01"))
+        output2$date_POSIXct <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$date[k])
+      }
+      if ('post_type' %in% names(fetched$response$items)) {
+        output2$post_type <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$post_type[k])
+      }
+      if ('text' %in% names(fetched$response$items)) {
+        output2$text <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$text[k])
+      }
+      
+      if ('comments' %in% names(fetched$response$items)) {
+        output2$comments_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$comments$count[k])
+      }
+      if ('likes' %in% names(fetched$response$items)) {
+        output2$likes_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$likes$count[k])
+      }
+      if ('reposts' %in% names(fetched$response$items)) {
+        output2$reposts_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$reposts$count[k])
+      }
+      if ('views' %in% names(fetched$response$items)) {
+        output2$views_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$views$count[k])
+      }
+      output <- plyr::rbind.fill(output, output2)
+      if (verbose) {
+        cat(paste0('Iteration ', m+1,' (out of ', length(offsets)+1, ') done\n'))
+      }
+      Sys.sleep(1)
+    }
+  }
+  fin <- proc.time()
+  cat('Total time:', round(as.numeric((fin-st)[3]/60),3), 'minutes\n')
   return(output)
 }
 
@@ -937,47 +1012,51 @@ getGroupMembers <- function(group_id, access_token, num_users = 'all', verbose =
 
 
 getGroupInfo <- function(group_id, access_token, links = TRUE) {
-  if (links) {
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/groups.getById?group_ids=', group_id,'&fields=city,country,place,description,wiki_page,members_count,start_date,finish_date,can_see_all_posts,activity,status,links,fixed_post,verified,site,ban_info&v=5.64&access_token=', access_token))
-    if ('error' %in% names(fetched)) {
-      stop(fetched$error$error_msg)
-    } 
-    output <- data.frame('id' = fetched$response$id,
-                         'name' = fetched$response$name,
-                         'screen_name' = fetched$response$screen_name,
-                         'is_closed' = fetched$response$is_closed,
-                         'description' = fetched$response$description,
-                         'members_count' = fetched$response$members_count,
-                         'status' = fetched$response$status,
-                         'fixed_post' = fetched$response$fixed_post,
-                         'verified' = fetched$response$verified,
-                         'photo_url' = fetched$response$photo_100,
-                         stringsAsFactors = F)
-    output$links = fetched$response$links
-    return(output)
-  } else {
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/groups.getById?group_ids=', group_id,'&fields=city,country,place,description,wiki_page,members_count,start_date,finish_date,can_see_all_posts,activity,status,fixed_post,verified,site,ban_info&v=5.64&access_token=', access_token))
-    if ('error' %in% names(fetched)) {
-      stop(fetched$error$error_msg)
-    } 
-    output <- data.frame('id' = fetched$response$id,
-                         'name' = fetched$response$name,
-                         'screen_name' = fetched$response$screen_name,
-                         'is_closed' = fetched$response$is_closed,
-                         'description' = fetched$response$description,
-                         'members_count' = fetched$response$members_count,
-                         'activity' = fetched$response$activity,
-                         'status' = fetched$response$status,
-                         'fixed_post' = fetched$response$fixed_post,
-                         'verified' = fetched$response$verified,
-                         'photo_url' = fetched$response$photo_100,
-                         stringsAsFactors = F)
-    return(output)
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/groups.getById?group_ids=', group_id,'&fields=city,country,place,description,wiki_page,members_count,start_date,finish_date,can_see_all_posts,activity,status,links,fixed_post,verified,site,ban_info&v=5.64&access_token=', access_token))
+  if ('error' %in% names(fetched)) {
+    stop(fetched$error$error_msg)
+  } 
+  output <- data.frame('id' = fetched$response$id, stringsAsFactors = F)
+  if ('name' %in% names(fetched$response)) {
+    output$name <- fetched$response$name
   }
+  if ('screen_name' %in% names(fetched$response)) {
+    output$screen_name <- fetched$response$screen_name
+  }
+  if ('is_closed' %in% names(fetched$response)) {
+    output$is_closed <- fetched$response$is_closed
+  }
+  if ('description' %in% names(fetched$response)) {
+    output$description <- fetched$response$description
+  }
+  if ('members_count' %in% names(fetched$response)) {
+    output$members_count <- fetched$response$members_count
+  }
+  if ('status' %in% names(fetched$response)) {
+    output$status <- fetched$response$status
+  }
+  if ('fixed_post' %in% names(fetched$response)) {
+    output$fixed_post <- fetched$response$fixed_post
+  }
+  if ('verified' %in% names(fetched$response)) {
+    output$verified <- fetched$response$verified
+  }
+  if ('photo_url' %in% names(fetched$response)) {
+    output$photo_url <- fetched$response$photo_url
+  }
+  if (links) {
+    if ('links' %in% names(fetched$response)) {
+      output$links <- fetched$response$links
+    }
+  }
+  return(output)
 }
 
 
 getGroupWall <- function(group_id, access_token, num_posts = 'all', verbose = FALSE) {
+  if (suppressWarnings(is.na(as.numeric(group_id))) | group_id <= 0) {
+    stop('Error in group id: group_id can only be numeric and positive')
+  }
   wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
   if ('error' %in% names(wall)) {
     stop(wall$error$error_msg, '\n')
@@ -989,7 +1068,7 @@ getGroupWall <- function(group_id, access_token, num_posts = 'all', verbose = FA
     num_posts <- wall$response$count
   } else {
     if (suppressWarnings(is.na(as.numeric(num_posts))) | num_posts <= 0) {
-      stop('Wrong number of posts: num_posts must be numeric and positive')
+      stop('Wrong number of posts: num_posts must be either "all" or numeric and positive')
     } else {
       num_posts <- min(num_posts, wall$response$count)
     }
@@ -1058,7 +1137,7 @@ getGroupWallComments <- function(group_id, num_posts = 'all', access_token, verb
     num_posts <- avail_posts
   } else {
     if (suppressWarnings(is.na(as.numeric(num_posts))) | num_posts <= 0) {
-      stop('Wrong number of posts: num_posts must be either "all" or numeric')
+      stop('Wrong number of posts: num_posts must be either "all" or numeric and positive')
     }
   }
   num_posts <- min(num_posts, avail_posts)
@@ -1144,7 +1223,7 @@ getGroupWallReposts <- function(group_id, access_token, num_posts = 'all', verbo
     num_posts <- avail_posts
   } else {
     if (suppressWarnings(is.na(as.numeric(num_posts))) | num_posts <= 0) {
-      stop('Wrong number of posts: num_posts must be either "all" or numeric')
+      stop('Wrong number of posts: num_posts must be either "all" or numeric and positive')
     }
   }
   num_posts <- min(num_posts, avail_posts)
@@ -1240,7 +1319,7 @@ getGroupWallLikes <- function(group_id, access_token, num_posts = 'all', verbose
     num_posts <- avail_posts
   } else {
     if (suppressWarnings(is.na(as.numeric(num_posts))) | num_posts <= 0) {
-      stop('Wrong number of posts: num_posts must be either "all" or numeric')
+      stop('Wrong number of posts: num_posts must be either "all" or numeric and positive')
     }
   }
   num_posts <- min(num_posts, avail_posts)
@@ -1365,27 +1444,102 @@ getGroupWallSearchCount <- function(group_id, query, access_token) {
 }
 
 
-searchGroupWall <- function(group_id, query, access_token) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', -group_id,'&query=', query,'&count=100&v=5.64&access_token=', access_token))
+searchGroupWall <- function(group_id, query, access_token, verbose = FALSE) {
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', -group_id,'&query=', query,'&count=100&offset=0&v=5.64&access_token=', access_token))
   if ('error' %in% names(fetched)) {
     stop(fetched$error$error_msg)
   }
+  st <- proc.time()
   if (length(fetched$response$items) > 0) {
-    output <- data.frame('object_id' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$id[k]),
-                         'from_user_id' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$from_id[k]),
-                         'group_id_wall' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$owner_id[k]),
-                         'date' = as.Date(as.POSIXct(fetched$response$items$date, origin="1970-01-01")),
-                         'date_POSIXct' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$date[k]),
-                         'post_type' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$post_type[k]),
-                         'to_post_id' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$post_id[k]),
-                         'text' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$text[k]),
-                         'comments_count' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$comments$count[k]),
-                         'likes_count' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$likes$count[k]),
-                         'reposts_count' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$reposts$count[k]),
-                         'views_count' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$views$count[k]), stringsAsFactors = F)
-    } else {
+    output <- data.frame('object_id' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$id[k]), stringsAsFactors = F)
+    
+    if ('from_id' %in% names(fetched$response$items)) {
+      output$from_user_id <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$from_id[k])
+    }
+    
+    if ('owner_id' %in% names(fetched$response$items)) {
+      output$group_id_wall <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$owner_id[k])
+    }
+    
+    if ('date' %in% names(fetched$response$items)) {
+      output$date <- as.Date(as.POSIXct(fetched$response$items$date, origin="1970-01-01"))
+      output$date_POSIXct <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$date[k])
+    }
+    if ('post_type' %in% names(fetched$response$items)) {
+      output$post_type <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$post_type[k])
+    }
+    if ('text' %in% names(fetched$response$items)) {
+      output$text <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$text[k])
+    }
+    
+    if ('comments' %in% names(fetched$response$items)) {
+      output$comments_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$comments$count[k])
+    }
+    if ('likes' %in% names(fetched$response$items)) {
+      output$likes_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$likes$count[k])
+    }
+    if ('reposts' %in% names(fetched$response$items)) {
+      output$reposts_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$reposts$count[k])
+    }
+    if ('views' %in% names(fetched$response$items)) {
+      output$views_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$views$count[k])
+    }
+  } else {
     output <- NULL
   }
+  if (fetched$response$count > 100) {
+    offsets <- 100 * seq(1, floor(fetched$response$count / 100))
+    if (verbose) {
+      cat(paste0('Iteration 1 (out of ', length(offsets)+1, ') done\n'))
+    }
+    
+    m = 0
+    for (off in offsets) {
+      m <- m + 1
+      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.search?owner_id=', -group_id,'&query=', query,'&count=100&offset=', off,'&v=5.64&access_token=', access_token))
+      Sys.sleep(1)
+      output2 <- data.frame('object_id' = sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$id[k]), stringsAsFactors = F)
+      
+      if ('from_id' %in% names(fetched$response$items)) {
+        output2$from_user_id <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$from_id[k])
+      }
+      
+      if ('owner_id' %in% names(fetched$response$items)) {
+        output2$group_id_wall <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$owner_id[k])
+      }
+      
+      if ('date' %in% names(fetched$response$items)) {
+        output2$date <- as.Date(as.POSIXct(fetched$response$items$date, origin="1970-01-01"))
+        output2$date_POSIXct <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$date[k])
+      }
+      if ('post_type' %in% names(fetched$response$items)) {
+        output2$post_type <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$post_type[k])
+      }
+      if ('text' %in% names(fetched$response$items)) {
+        output2$text <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$text[k])
+      }
+      
+      if ('comments' %in% names(fetched$response$items)) {
+        output2$comments_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$comments$count[k])
+      }
+      if ('likes' %in% names(fetched$response$items)) {
+        output2$likes_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$likes$count[k])
+      }
+      if ('reposts' %in% names(fetched$response$items)) {
+        output2$reposts_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$reposts$count[k])
+      }
+      if ('views' %in% names(fetched$response$items)) {
+        output2$views_count <- sapply(1:nrow(fetched$response$items), function(k) fetched$response$items$views$count[k])
+      }
+      output <- plyr::rbind.fill(output, output2)
+      if (verbose) {
+        cat(paste0('Iteration ', m+1,' (out of ', length(offsets)+1, ') done\n'))
+      }
+      Sys.sleep(1)
+    }
+  }
+  fin <- proc.time()
+  cat('Total time:', round(as.numeric((fin-st)[3]/60),3), 'minutes\n')
   return(output)
 }
 
@@ -1395,6 +1549,5 @@ searchGroupWall <- function(group_id, query, access_token) {
 # Check: all functions return a data.frame with (if AAA %in% names(items)) check
 
 
-# check dates
- 
+
 
