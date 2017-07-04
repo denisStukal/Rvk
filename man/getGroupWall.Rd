@@ -15,21 +15,20 @@ Returns a data.frame with publicly available information about posts on a group'
 
 
 \usage{
-getGroupWall(group_id, access_token, n = NULL)
+getGroupWall(group_id, access_token, num_posts = 'all', verbose = FALSE)
 }
 
 
 \arguments{
   \item{group_id}{A numeric ID for the VK group. Available from the group's page (see Details).}
   \item{access_token}{ Your access token (see ?makeAccessToken).}
-  \item{n}{Number of posts to retrieve (optional argument). See Details below }
+  \item{num_posts}{Number of posts to retrieve.}
+  \item{verbose}{Boolean: suppress informational messages if FALSE (default).}
 }
 
 
 \details{
 Many VK groups have their ID as part of their URL address (e.g. https://vk.com/publicGROUPID, where GROUPID is a sequence of numbers). In the event a group has a screen name that does not show its ID in the URL, one can access it by clicking on any group post (or photo, video, etc.): the post will open with a new URL of the form https://vk.com/SCREENNAME?w=wall-GROUPID_POSTID). Pass GROUPID (without the minus sign in front of it) to the function call.
-
-There are 2 ways to specify the number of posts to retrieve. The user can either pass that number to the function call through the n argument, over (default) interactively type that number when prompted after the function reports the total number of available posts. 
 
 }
 

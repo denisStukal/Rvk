@@ -593,7 +593,7 @@ getUserPostLikes <- function(user_id, post_id, access_token) {
 } 
 
 
-getUserWallLikes <- function(group_id, access_token, num_posts = 'all', verbose = FALSE) {
+getUserWallLikes <- function(user_id, access_token, num_posts = 'all', verbose = FALSE) {
   #--- Get posts number and request the number of posts to retrieve
   wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', user_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
   if ('error' %in% names(wall)) {
@@ -741,7 +741,7 @@ getUserWallReposts <- function(user_id, access_token, num_posts = 'all', verbose
   #--- Iteratively get reposts for every requested post
   total_output <- list()
   st <- proc.time()
-  if (versobe) {
+  if (verbose) {
     cat('Iterations started.\n')
   }
   for (j in 1:num_posts) {

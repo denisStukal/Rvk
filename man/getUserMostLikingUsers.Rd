@@ -15,13 +15,15 @@ Returns a data.frame with IDs of users who liked posts on a user's page, and the
 
 
 \usage{
-getUserMostLikingUsers(user_id, access_token, num_users = 'all', verbose = FALSE)
+getUserMostLikingUsers(user_id, access_token, num_posts = 'all', 
+    num_users = 'all', verbose = FALSE)
 }
 
 
 \arguments{
   \item{user_id}{A numeric user ID. Available from the user's page (see Details).}
   \item{access_token}{Your access token (see ?makeAccessToken).}
+  \item{num_posts}{Number of posts to use when counting likes. Either 'all' (default) or a positive integer.}
   \item{num_users}{Number of top users with most likes to report. Either 'all' (default) or numeric.}
   \item{verbose}{Boolean: suppress informational messages if FALSE (default).}
 }
@@ -38,7 +40,7 @@ Many users have their ID as part of their URL address (e.g. https://vk.com/idUSE
 \value{
 A data.frame with columns:
 \item{user_id}{User ID who left likes.}
-\item{num_likes}{Number of likes a given users left on the retrieved number of posts.}
+\item{num_likes}{Number of likes a given user left on the retrieved number of posts.}
 }
 
 

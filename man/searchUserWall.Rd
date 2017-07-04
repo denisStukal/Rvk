@@ -13,7 +13,7 @@ Returns a data.frame with publicly available information about posts/replies tha
 }
 
 \usage{
-searchUserWall(user_id, query, access_token)
+searchUserWall(user_id, query, access_token, verbose = FALSE)
 }
 
 
@@ -21,6 +21,7 @@ searchUserWall(user_id, query, access_token)
   \item{user_id}{A numeric user ID. Available from the user's page (see Details). }
   \item{query}{A string to search on a user's page.}
   \item{access_token}{ Your access token (see ?makeAccessToken). }
+  \item{verbose}{Boolean (default: FALSE), whether information about scraping iterations should be printed.}
 }
 
 

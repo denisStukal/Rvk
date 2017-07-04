@@ -13,7 +13,7 @@ Returns a data.frame with publicly available information about posts/replies tha
 }
 
 \usage{
-searchGroupWall(group_id, query, access_token)
+searchGroupWall(group_id, query, access_token, verbose = FALSE)
 }
 
 
@@ -21,6 +21,7 @@ searchGroupWall(group_id, query, access_token)
   \item{group_id}{ A numeric ID of the VK group. Available from the group's page (see Details). }
   \item{query}{A string to search on a group page.}
   \item{access_token}{ Your access token (see ?makeAccessToken). }
+  \item{verbose}{Boolean: suppress informational messages if FALSE (default).}
 }
 
 

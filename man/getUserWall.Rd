@@ -15,14 +15,15 @@ Returns a data.frame with publicly available information about posts from a user
 
 
 \usage{
-getUserWall(user_id, access_token, n = NULL)
+getUserWall(user_id, access_token, num_posts = 'all', verbose = FALSE)
 }
 
 
 \arguments{
   \item{user_id}{Numeric user ID. Available from user page (see Details).}
   \item{access_token}{Your access token (see ?makeAccessToken).}
-  \item{n}{Number of posts to retrieve (optional argument). See Details below }
+  \item{num_posts}{Number of posts to consider. Either 'all' (default) or a positive integer.}
+  \item{verbose}{Boolean: suppress informational messages if FALSE (default).}
 }
 
 

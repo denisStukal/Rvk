@@ -15,12 +15,13 @@ Returns a data.frame with information about comments to posts on a group page.
 
 
 \usage{
-getGroupWallComments(group_id, access_token, verbose = FALSE)
+getGroupWallComments(group_id, num_posts = 'all', access_token, verbose = FALSE)
 }
 
 
 \arguments{
   \item{group_id}{A numeric ID of the VK group. Available from the group's page (see Details).}
+  \item{num_posts}{Number of posts to consider. Either 'all' (default) or a positive integer.}
   \item{access_token}{ Your access token (see ?makeAccessToken).}
   \item{verbose}{Boolean: if FALSE (default), informational messages are suppressed.}
 }

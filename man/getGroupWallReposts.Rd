@@ -15,13 +15,14 @@ Returns a data.frame with information about reposts of posts on a group page.
 
 
 \usage{
-getGroupWallReposts(group_id, access_token, verbose = FALSE)
+getGroupWallReposts(group_id, access_token, num_posts = 'all', verbose = FALSE)
 }
 
 
 \arguments{
   \item{group_id}{A numeric ID of a VK group. Available from the group's page (see Details).}
   \item{access_token}{ Your access token (see ?makeAccessToken).}
+  \item{num_posts}{Number of posts to consider. Either 'all' (default) or a positive integer.}
   \item{verbose}{Boolean: if FALSE (default), informational messages are suppressed.}
 }
 

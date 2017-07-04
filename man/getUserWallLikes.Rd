@@ -15,13 +15,14 @@ Returns a list of vectors with user IDs who liked posts on a user page. Each vec
 
 
 \usage{
-getUserWallLikes(user_id, access_token, verbose = FALSE)
+getUserWallLikes(user_id, access_token, num_posts = 'all', verbose = FALSE)
 }
 
 
 \arguments{
   \item{user_id}{ A numeric ID of a user. Available from the users's page (see Details). }
   \item{access_token}{ Your access token (see ?makeAccessToken). }
+  \item{num_posts}{Number of posts to consider. Either 'all' (default) or a positive integer.}
   \item{verbose}{Boolean: if FALSE (default), informational messages are suppressed.}
 }
 

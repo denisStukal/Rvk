@@ -17,14 +17,15 @@ Returns a data.frame with publicly available information on members of a VK grou
 
 \usage{
 getGroupMembers(group_id, access_token, 
-    count = 1000)
+    num_users = 'all', verbose = FALSE)
 }
 
 
 \arguments{
   \item{group_id}{ A numeric id for the VK group. Available from the group's page (see Details).}
   \item{access_token}{Your access token (see ?makeAccessToken).}
-  \item{count}{The number of group members to be returned. The maximum possible number allowed by VK API is 1000 (default).}
+  \item{num_users}{The number of group members to be returned. Either 'all' (default) or a positive integer.}
+  \item{verbose}{Boolean (default: FALSE), whether information about scraping iterations should be printed.}
 }
 
 
@@ -54,8 +55,7 @@ Denis Stukal \url{denis.stukal@nyu.edu}
 \dontrun{
 mytoken = 'XXXXXXXXXXXXXX'
 groupid = AAAAAAAA
-dat <- getGroupMembers(group_id = groupid, access_token = mytoken, 
-    num_universities = 3, num_schools = 2, num_jobs = 4)
+dat <- getGroupMembers(group_id = groupid, access_token = mytoken)
 str(dat)
 }
 }
