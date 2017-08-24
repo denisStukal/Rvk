@@ -77,7 +77,7 @@ but I will take only the last 5.
 
     user_wall <- Rvk::getUserWall(user_id = userid, access_token = mytoken, n = 5)
 
-    ## Total time: 0.064 minutes
+    ## Total time: 0.03 minutes
 
     str(subset(user_wall, select = c(id, date, text, comments_count, likes_count, reposts_count, reposted, reposted_from_id, reposted_original_date)))
 
@@ -87,7 +87,7 @@ but I will take only the last 5.
     ##  $ text                  : chr  "Hi! My name is Denis Stukal, and I am glad to finally preset the first R package that provides a set of functio"| __truncated__ "\"Now is better than ever before to start studying machine learning and artificial intelligence. The field has "| __truncated__ "Having a vacation in academia be like...\nAccessed from: http://phdcomics.com/comics/archive/phd080117s.gif" "" ...
     ##  $ comments_count        : int  0 1 2 0 0
     ##  $ likes_count           : int  1 2 2 1 1
-    ##  $ reposts_count         : int  0 1 0 0 0
+    ##  $ reposts_count         : int  1 1 0 0 0
     ##  $ reposted              : num  0 0 0 1 0
     ##  $ reposted_from_id      : int  NA NA NA -138477641 NA
     ##  $ reposted_original_date: num  NA NA NA 17392 NA
@@ -96,7 +96,7 @@ One can get most important posts by extracting those that were liked,
 reposted, or commented the most. First, let's look at the distribution
 of the number of likes for the extracted 5 posts.
 
-    hist(user_wall$likes_count, breaks = 100, main = 'Distribution of likes', xlab = 'Likes count')
+    barplot(table(user_wall$likes_count), main = 'Distribution of likes', xlab = 'Likes count')
 
 ![](README_files/figure-markdown_strict/unnamed-chunk-4-1.png)
 
@@ -126,15 +126,15 @@ reposting, commenting).
 
     users_like <- Rvk::getUserMostLikingUsers(user_id = userid, num_posts = 5, num_users = 2, access_token = mytoken)
 
-    ## Total time: 0.1556 minutes
+    ## Total time: 0.1737833 minutes
 
     users_repost <- Rvk::getUserMostRepostingUsers(user_id = userid, num_posts = 5, num_users = 2, access_token = mytoken)
 
-    ## Total time: 0.2019833 minutes
+    ## Total time: 0.1717333 minutes
 
     users_comment <- Rvk::getUserMostCommentingUsers(user_id = userid, num_posts = 5, num_users = 2, access_token = mytoken)
 
-    ## Total time: 0.1519167 minutes
+    ## Total time: 0.1663333 minutes
 
 These three variables store data.frames with user IDs and numbers of
 likes/reposts/comments for those users who left most of those on the
