@@ -663,11 +663,16 @@ getUserMostLikingUsers <- function(user_id, access_token, num_posts = 'all', num
   }
   likes <- getUserWallLikes(user_id = user_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
   likes <- do.call('c', likes)
-  tb <- table(likes)
-  output <- data.frame('user_id' = names(tb), 'num_likes' = as.numeric(tb), stringsAsFactors = F)
-  output <- output[order(output$num_likes, decreasing = T),]
-  if (num_users != 'all') {
-    output <- output[1:min(num_users, nrow(output)),]
+  if (length(likes) != 0) {
+    tb <- table(likes)
+    output <- data.frame('user_id' = names(tb), 'num_likes' = as.numeric(tb), stringsAsFactors = F)
+    output <- output[order(output$num_likes, decreasing = T),]
+    if (num_users != 'all') {
+      output <- output[1:min(num_users, nrow(output)),]
+    }
+  } else {
+    cat('There are no likes.\n')
+    output <- NULL
   }
   return(output)
 }
@@ -791,11 +796,16 @@ getUserMostRepostingUsers <- function(user_id, access_token, num_posts = 'all', 
     stop('Wrong number of users: num_users must be either "all" or numeric and positive')
   }
   repos <- getUserWallReposts(user_id = user_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
-  tb <- table(repos$reposter_id)
-  output <- data.frame('user_id' = names(tb), 'num_reposts' = as.numeric(tb), stringsAsFactors = F)
-  output <- output[order(output$num_reposts, decreasing = T),]
-  if (num_users != 'all') {
-    output <- output[1:min(num_users, nrow(output)),]
+  if (length(repos) != 0) {
+    tb <- table(repos$reposter_id)
+    output <- data.frame('user_id' = names(tb), 'num_reposts' = as.numeric(tb), stringsAsFactors = F)
+    output <- output[order(output$num_reposts, decreasing = T),]
+    if (num_users != 'all') {
+      output <- output[1:min(num_users, nrow(output)),]
+    }
+  } else {
+    cat('There are no reposts\n')
+    output <- NULL
   }
   return(output)
 }
@@ -814,11 +824,16 @@ getUserMostCommentingUsers <- function(user_id, access_token, num_posts = 'all',
     stop('Wrong number of users: num_users must be either "all" or numeric and positive')
   }
   coms <- getUserWallComments(user_id = user_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
-  tb <- table(coms$commenter_id)
-  output <- data.frame('user_id' = names(tb), 'num_comments' = as.numeric(tb), stringsAsFactors = F)
-  output <- output[order(output$num_comments, decreasing = T),]
-  if (num_users != 'all') {
-    output <- output[1:min(num_users, nrow(output)),]
+  if (length(coms) != 0) {
+    tb <- table(coms$commenter_id)
+    output <- data.frame('user_id' = names(tb), 'num_comments' = as.numeric(tb), stringsAsFactors = F)
+    output <- output[order(output$num_comments, decreasing = T),]
+    if (num_users != 'all') {
+      output <- output[1:min(num_users, nrow(output)),]
+    }
+  } else {
+    cat('There are no comments.\n')
+    output <- NULL
   }
   return(output)
 }
@@ -1375,11 +1390,16 @@ getGroupMostLikingUsers <- function(group_id, access_token, num_posts = 'all', n
   }
   likes <- getGroupWallLikes(group_id = group_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
   likes <- do.call('c', likes)
-  tb <- table(likes)
-  output <- data.frame('user_id' = names(tb), 'num_likes' = as.numeric(tb), stringsAsFactors = F)
-  output <- output[order(output$num_likes, decreasing = T),]
-  if (num_users != 'all') {
-    output <- output[1:min(num_users, nrow(output)),]
+  if (length(likes) != 0) {
+    tb <- table(likes)
+    output <- data.frame('user_id' = names(tb), 'num_likes' = as.numeric(tb), stringsAsFactors = F)
+    output <- output[order(output$num_likes, decreasing = T),]
+    if (num_users != 'all') {
+      output <- output[1:min(num_users, nrow(output)),]
+    }
+  } else {
+    cat('There are no likes.\n')
+    output <- NULL
   }
   return(output)
 }
@@ -1397,13 +1417,18 @@ getGroupMostRepostingUsers <- function(group_id, access_token, num_posts = 'all'
   if (num_users != 'all' & (suppressWarnings(is.na(as.numeric(num_users))) | num_users <= 0)) {
     stop('Wrong number of users: num_users must be either "all" or numeric and positive')
   }
-  repos <- getGroupWallReposts(group_id = group_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
-  tb <- table(repos$reposter_id)
-  output <- data.frame('user_id' = names(tb), 'num_reposts' = as.numeric(tb), stringsAsFactors = F)
-  output <- output[order(output$num_reposts, decreasing = T),]
-  if (num_users != 'all') {
-    output <- output[1:min(num_users, nrow(output)),]
-   }
+  repos <- getUserWallReposts(user_id = user_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
+  if (length(repos) != 0) {
+    tb <- table(repos$reposter_id)
+    output <- data.frame('user_id' = names(tb), 'num_reposts' = as.numeric(tb), stringsAsFactors = F)
+    output <- output[order(output$num_reposts, decreasing = T),]
+    if (num_users != 'all') {
+      output <- output[1:min(num_users, nrow(output)),]
+    }
+  } else {
+    cat('There are no reposts\n')
+    output <- NULL
+  }
   return(output)
 }
 
@@ -1420,19 +1445,23 @@ getGroupMostCommentingUsers <- function(group_id, access_token, num_posts = 'all
   if (num_users != 'all' & (suppressWarnings(is.na(as.numeric(num_users))) | num_users <= 0)) {
     stop('Wrong number of users: num_users must be either "all" or numeric and positive')
   }
-  coms <- getGroupWallComments(group_id = group_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
-  tb <- table(coms$commenter_id)
-  output <- data.frame('user_id' = names(tb), 'num_comments' = as.numeric(tb), stringsAsFactors = F)
-  if (length(nrow(output)) == 0 | nrow(output) == 0) {
-    return(NULL)
-    
-  }
-  output <- output[order(output$num_comments, decreasing = T),]
-  if (num_users != 'all') {
-    output <- output[1:min(num_users, nrow(output)),]
+  coms <- getUserWallComments(user_id = user_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
+  if (length(coms) != 0) {
+    tb <- table(coms$commenter_id)
+    output <- data.frame('user_id' = names(tb), 'num_comments' = as.numeric(tb), stringsAsFactors = F)
+    output <- output[order(output$num_comments, decreasing = T),]
+    if (num_users != 'all') {
+      output <- output[1:min(num_users, nrow(output)),]
+    }
+  } else {
+    cat('There are no comments.\n')
+    output <- NULL
   }
   return(output)
 }
+
+
+
 
 
 getGroupWallSearchCount <- function(group_id, query, access_token) {
