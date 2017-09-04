@@ -86,7 +86,7 @@ but I will take only the last 5.
 
     user_wall <- Rvk::getUserWall(user_id = userid, access_token = mytoken, n = 5)
 
-    ## Total time: 0.03 minutes
+    ## Total time: 0.029 minutes
 
     str(subset(user_wall, select = c(id, date, text, comments_count, likes_count, reposts_count, reposted, reposted_from_id, reposted_original_date)))
 
@@ -135,15 +135,15 @@ reposting, commenting).
 
     users_like <- Rvk::getUserMostLikingUsers(user_id = userid, num_posts = 5, num_users = 2, access_token = mytoken)
 
-    ## Total time: 0.1652167 minutes
+    ## Total time: 0.3458333 minutes
 
     users_repost <- Rvk::getUserMostRepostingUsers(user_id = userid, num_posts = 5, num_users = 2, access_token = mytoken)
 
-    ## Total time: 0.2126167 minutes
+    ## Total time: 0.2075167 minutes
 
     users_comment <- Rvk::getUserMostCommentingUsers(user_id = userid, num_posts = 5, num_users = 2, access_token = mytoken)
 
-    ## Total time: 0.1976833 minutes
+    ## Total time: 0.15475 minutes
 
 These three variables store data.frames with user IDs and numbers of
 likes/reposts/comments for those users who left most of those on the
@@ -177,6 +177,6 @@ the same day):
     newposts1 <- search_newsfeed(query = 'moscow', start_time = '2017-09-04 09:00:00', end_time = '2017-09-04 12:00:00', access_token = mytoken)
 
 NB! Time is specified as [UTC
-(GMT)](en.wikipedia.org/wiki/Coordinated_Universal_Time).
+(GMT)](https://en.wikipedia.org/wiki/Coordinated_Universal_Time).
 
 Now, you're well equipped to proceed scraping VK on your own! Good luck!
