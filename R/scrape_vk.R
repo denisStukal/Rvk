@@ -1417,7 +1417,7 @@ getGroupMostRepostingUsers <- function(group_id, access_token, num_posts = 'all'
   if (num_users != 'all' & (suppressWarnings(is.na(as.numeric(num_users))) | num_users <= 0)) {
     stop('Wrong number of users: num_users must be either "all" or numeric and positive')
   }
-  repos <- getUserWallReposts(user_id = user_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
+  repos <- getGroupWallReposts(group_id = group_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
   if (length(repos) != 0) {
     tb <- table(repos$reposter_id)
     output <- data.frame('user_id' = names(tb), 'num_reposts' = as.numeric(tb), stringsAsFactors = F)
@@ -1445,7 +1445,7 @@ getGroupMostCommentingUsers <- function(group_id, access_token, num_posts = 'all
   if (num_users != 'all' & (suppressWarnings(is.na(as.numeric(num_users))) | num_users <= 0)) {
     stop('Wrong number of users: num_users must be either "all" or numeric and positive')
   }
-  coms <- getUserWallComments(user_id = user_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
+  coms <- getGroupWallComments(group_id = group_id, access_token = access_token, num_posts = num_posts, verbose = verbose)
   if (length(coms) != 0) {
     tb <- table(coms$commenter_id)
     output <- data.frame('user_id' = names(tb), 'num_comments' = as.numeric(tb), stringsAsFactors = F)
