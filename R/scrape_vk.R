@@ -1573,11 +1573,11 @@ searchGroupWall <- function(group_id, query, access_token, verbose = FALSE) {
 searchNewsfeed <- function(query, access_token, start_time = NULL, end_time = NULL, verbose = FALSE) {
   total_output <- NULL
   if (is.null(start_time) | is.null(end_time)) {
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&count=100&&access_token=', mytoken))
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&count=100&&access_token=', access_token))
   } else {
     start_time <- as.numeric(as.POSIXlt(start_time, tz = 'GMT'))
     end_time <- as.numeric(as.POSIXlt(end_time, tz = 'GMT'))
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&start_time=', start_time,'&end_time=', end_time,'&count=100&access_token=', mytoken))
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&start_time=', start_time,'&end_time=', end_time,'&count=100&access_token=', access_token))
   }
   if ('error' %in% names(fetched)) {
     stop(fetched$error$error_msg)
@@ -1594,9 +1594,9 @@ searchNewsfeed <- function(query, access_token, start_time = NULL, end_time = NU
       cat('Iteration', j, '\n')
     }
     if (is.null(start_time) | is.null(end_time)) {
-      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&offset=', offsets[j],'&count=100&access_token=', mytoken))
+      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&offset=', offsets[j],'&count=100&access_token=', access_token))
     } else {
-      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&offset=', offsets[j], '&start_time=', start_time,'&end_time=', end_time,'&count=100&access_token=', mytoken))
+      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&offset=', offsets[j], '&start_time=', start_time,'&end_time=', end_time,'&count=100&access_token=', access_token))
     }
     if (j == 1 & length(fetched$response) > 1) {
       total_output <- lapply(2:length(fetched$response), function(k) data.frame('from_id' = fetched$response[[k]]$from_id, 'object_id' = fetched$response[[k]]$id,

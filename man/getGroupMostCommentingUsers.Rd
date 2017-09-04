@@ -36,7 +36,7 @@ Many VK groups and users have their ID as part of their URL address (e.g. https:
 
 \value{
 A data.frame with columns:
-\item{user_id}{User ID who left comments.}
+\item{group_id}{User ID who left comments.}
 \item{num_comments}{Number of comments a given users left on the retrieved number of posts.}
 }
 
