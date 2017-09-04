@@ -1570,7 +1570,7 @@ searchGroupWall <- function(group_id, query, access_token, verbose = FALSE) {
 }
 
 
-search_newsfeed <- function(query, access_token, start_time = NULL, end_time = NULL, verbose = TRUE) {
+searchNewsfeed <- function(query, access_token, start_time = NULL, end_time = NULL, verbose = FALSE) {
   total_output <- NULL
   if (is.null(start_time) | is.null(end_time)) {
     fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&count=100&&access_token=', mytoken))
