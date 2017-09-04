@@ -10,7 +10,16 @@ available data from VK.
 
 ### Installation
 
-You can easily install the package from GitHub:
+The package requires R version 3.4.0 or higher. You can check your
+current version with:
+
+    sessionInfo()
+
+The first row of the output shows your version of R. If it's lower than
+the required, download the new version.
+
+If the version requirement is satistied, you can easily install the
+package from GitHub:
 
     install.packages('devtools')
     devtools::install_github('denisStukal/Rvk')
@@ -26,7 +35,7 @@ the makeAccessToken() function that will take you through the process:
 
     ?Rvk::makeAccessToken
 
-### Example: Personal VK page
+### Example 1: Personal VK page
 
 I'm going to scrape the VK page for Rvk Demo, an account created for
 this R package, as an example of how to use the package to access and
@@ -55,8 +64,8 @@ process VK data.
     ##  $ photo_url          : chr "https://pp.userapi.com/c837532/v837532153/58c54/Pbb6JXejpJc.jpg"
     ##  $ has_mobile         : int 1
     ##  $ status             : chr ""
-    ##  $ last_seen          : int 1503577155
-    ##  $ last_seen_date     : Date, format: "2017-08-24"
+    ##  $ last_seen          : int 1504195904
+    ##  $ last_seen_date     : Date, format: "2017-08-31"
     ##  $ universities_number:List of 1
     ##   ..$ : logi 
     ##  $ universities       :List of 1
@@ -77,7 +86,7 @@ but I will take only the last 5.
 
     user_wall <- Rvk::getUserWall(user_id = userid, access_token = mytoken, n = 5)
 
-    ## Total time: 0.041 minutes
+    ## Total time: 0.03 minutes
 
     str(subset(user_wall, select = c(id, date, text, comments_count, likes_count, reposts_count, reposted, reposted_from_id, reposted_original_date)))
 
@@ -86,7 +95,7 @@ but I will take only the last 5.
     ##  $ date                  : Date, format: "2017-08-14" "2017-08-15" ...
     ##  $ text                  : chr  "Hi! My name is Denis Stukal, and I am glad to finally preset the first R package that provides a set of functio"| __truncated__ "\"Now is better than ever before to start studying machine learning and artificial intelligence. The field has "| __truncated__ "Having a vacation in academia be like...\nAccessed from: http://phdcomics.com/comics/archive/phd080117s.gif" "" ...
     ##  $ comments_count        : int  0 1 2 0 0
-    ##  $ likes_count           : int  1 2 2 1 1
+    ##  $ likes_count           : int  2 2 2 1 1
     ##  $ reposts_count         : int  1 1 0 0 0
     ##  $ reposted              : num  0 0 0 1 0
     ##  $ reposted_from_id      : int  NA NA NA -138477641 NA
@@ -98,7 +107,7 @@ of the number of likes for the extracted 5 posts.
 
     barplot(table(user_wall$likes_count), main = 'Distribution of likes', xlab = 'Likes count')
 
-![](README_files/figure-markdown_strict/unnamed-chunk-4-1.png)
+![](README_files/figure-markdown_strict/unnamed-chunk-5-1.png)
 
 Most posts are liked just once, but there is one post that got 2 likes.
 Let's extract it as well as most commented and reposted posts.
@@ -126,15 +135,15 @@ reposting, commenting).
 
     users_like <- Rvk::getUserMostLikingUsers(user_id = userid, num_posts = 5, num_users = 2, access_token = mytoken)
 
-    ## Total time: 0.1558167 minutes
+    ## Total time: 0.1652167 minutes
 
     users_repost <- Rvk::getUserMostRepostingUsers(user_id = userid, num_posts = 5, num_users = 2, access_token = mytoken)
 
-    ## Total time: 0.1622667 minutes
+    ## Total time: 0.2126167 minutes
 
     users_comment <- Rvk::getUserMostCommentingUsers(user_id = userid, num_posts = 5, num_users = 2, access_token = mytoken)
 
-    ## Total time: 0.1489 minutes
+    ## Total time: 0.1976833 minutes
 
 These three variables store data.frames with user IDs and numbers of
 likes/reposts/comments for those users who left most of those on the
@@ -146,5 +155,28 @@ all friends the user has. You can get those as easily as this:
 
     friends_num <- Rvk::getUserFriendsNum(user_id = userid, access_token = mytoken)
     friends_data <- Rvk::getUserFriendsInfo(user_id = userid, access_token = mytoken)
+
+### Example 2: Searching for information on VK
+
+Rvk also allows you searching for VK posts that contain specific words
+or expressions.
+
+    newposts <- search_newsfeed(query = 'moscow', access_token = mytoken)
+
+At the time of this writing, VK API returns at most 1,000 posts for
+search queries, so the command above will return 1000 latest posts that
+mention Moscow.
+
+Nevertheless, one can get around the 1000 limit by iteratively
+specifying an exact time period for posts to be retrieved. For example,
+one can first extract all posts mentioning Moscow between 12PM and 3PM
+on September 4, 2017; and then go deeper in time (say, 9AM and 12PM of
+the same day):
+
+    newposts1 <- search_newsfeed(query = 'moscow', start_time = '2017-09-04 12:00:00', end_time = '2017-09-04 15:00:00', access_token = mytoken)
+    newposts1 <- search_newsfeed(query = 'moscow', start_time = '2017-09-04 09:00:00', end_time = '2017-09-04 12:00:00', access_token = mytoken)
+
+NB! Time is specified as [UTC
+(GMT)](en.wikipedia.org/wiki/Coordinated_Universal_Time).
 
 Now, you're well equipped to proceed scraping VK on your own! Good luck!
