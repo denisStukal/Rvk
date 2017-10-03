@@ -545,10 +545,11 @@ getUserWallComments <- function(user_id, num_posts = 'all', access_token, verbos
   }
   num_posts <- min(num_posts, avail_posts)
   if (verbose) {
-    cat('Retrieveing all requested post ids\n')
+    cat(paste0('Retrieveing ', num_posts, ' requested post ids\n'))
   }
   if (num_posts <= 100) {
     all_requested_posts <- wall$response$items$id
+    all_requested_posts <- all_requested_posts[1:num_posts]
   } else {
     all_requested_posts <- wall$response$items$id
     offsets <- 100 * 1:floor(num_posts/100)
@@ -631,6 +632,7 @@ getUserWallLikes <- function(user_id, access_token, num_posts = 'all', verbose =
   }
   if (num_posts <= 100) {
     all_requested_posts <- wall$response$items$id
+    all_requested_posts <- all_requested_posts[1:num_posts]
   } else {
     all_requested_posts <- wall$response$items$id
     offsets <- 100 * 1:floor(num_posts/100)
@@ -639,6 +641,7 @@ getUserWallLikes <- function(user_id, access_token, num_posts = 'all', verbose =
       all_requested_posts <- c(all_requested_posts, wall$response$items$id)
     }
     all_requested_posts <- unique(all_requested_posts)
+    all_requested_posts <- all_requested_posts[1:num_posts]
   }
   if (verbose) {
     cat('All requested post ids retrieved\n')
@@ -745,6 +748,7 @@ getUserWallReposts <- function(user_id, access_token, num_posts = 'all', verbose
   }
   if (num_posts <= 100) {
     all_requested_posts <- wall$response$items$id
+    all_requested_posts <- all_requested_posts[1:num_posts]
   } else {
     all_requested_posts <- wall$response$items$id
     offsets <- 100 * 1:floor(num_posts/100)
