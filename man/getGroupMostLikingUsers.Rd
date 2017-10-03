@@ -33,6 +33,8 @@ getGroupMostLikingUsers(group_id, access_token, num_posts = 'all',
 During function execution, one is requested to specify the number of posts to retrieve. The list of users and the number of likes are based on the retrieved posts only. 
 
 Many VK groups and users have their ID as part of their URL address (e.g. https://vk.com/publicGROUPID, where GROUPID is a sequence of numbers). In the event a group has a screen name that does not show its ID in the URL, one can access it by clicking on any group post (or photo, video, etc.): the post will open with a new URL of the form https://vk.com/SCREENNAME?w=wall-GROUPID_POSTID). Pass GROUPID (without the minus sign in front of it) to the function call. 
+
+The command returns negative IDs for VK groups and positive IDs for individual users.
 }
 
 

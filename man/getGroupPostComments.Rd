@@ -58,7 +58,7 @@ Denis Stukal \url{denis.stukal@nyu.edu}
 mytoken = 'XXXXXXXXXXXXXX'
 groupid = AAAAAAAA
 postid = BBBBBB
-dat <- getGroupInfo(group_id = groupid, post_id = postid, access_token = mytoken)
+dat <- getGroupPostComments(group_id = groupid, post_id = postid, access_token = mytoken)
 str(dat)
 }
 }

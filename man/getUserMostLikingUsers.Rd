@@ -34,6 +34,8 @@ During function execution, one is requested to specify the number of posts to re
 
 Many users have their ID as part of their URL address (e.g. https://vk.com/idUSERID, where USERID is a sequence of numbers). In the event users have screen names that do not show their ID in the URL, one can access them by clicking on the user's post (or photo, video, etc.): the post will open with a new URL of the form https://vk.com/SCREENNAME?w=wall-USERID_POSTID). Pass USERID (without the minus sign in front of it) to the function call. 
 
+The command returns negative IDs for VK groups and positive IDs for individual users.
+
 }
 
 
