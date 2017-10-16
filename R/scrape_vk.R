@@ -567,25 +567,31 @@ getUserWallComments <- function(user_id, num_posts = 'all', access_token, verbos
     cat('Iterations started.\n')
   }
   for (j in 1:length(all_requested_posts)) {
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', user_id,'&post_id=', all_requested_posts[j],'&need_likes=1&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token))
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', user_id,'&post_id=', all_requested_posts[j],'&count=100&need_likes=1&v=5.68&extended=0&access_token=', access_token))
     if ('error' %in% names(fetched)) {
       cat('ERROR in ', j, ':', fetched$error$error_msg, '\n')
       Sys.sleep(1)
       # return(NULL)
     } else {
-      items <- fetched$response$items
-      if (!is.null(nrow(items))) {
-        total_output[[j]] <- data.frame('comment_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
-                                        'commenter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
-                                        'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
-                                        'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
-                                        'likes_count' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']), NA, as.numeric(items[k, 'likes']['count']))),
-                                        'reply_to_user' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reply_to_user']), NA, items[k, 'reply_to_user'])),
-                                        'reply_to_comment' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reply_to_comment']), NA, items[k, 'reply_to_comment'])), stringsAsFactors = F)
-        total_output[[j]]$user_id_wall <- user_id
-        total_output[[j]]$to_post_id <- all_requested_posts[j]
+      cur_total_count <- fetched$response$count
+      newoffsets <- 100 * 0:floor(cur_total_count/100)
+      items2_list <- list()
+      for (ell in 1:length(newoffsets)) {
+        fetched2 <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', user_id,'&post_id=', all_requested_posts[j],'&count=100&offset=', newoffsets[ell],'&need_likes=1&v=5.68&extended=0&access_token=', access_token))
+        items2 <- fetched2$response$items
+        items2_list[[ell]] <- data.frame('comment_id' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'id']), NA, items2[k, 'id'])),
+                                         'commenter_id' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'from_id']), NA, items2[k, 'from_id'])),
+                                         'date' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'date']), NA, items2[k, 'date'])),
+                                         'text' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'text']), NA, items2[k, 'text'])),
+                                         'likes_count' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'likes']), NA, as.numeric(items2[k, 'likes']['count']))),
+                                         'reply_to_user' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'reply_to_user']), NA, items2[k, 'reply_to_user'])),
+                                         'reply_to_comment' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'reply_to_comment']), NA, items2[k, 'reply_to_comment'])), stringsAsFactors = F)
+        items2_list[[ell]]$user_id_wall <- user_id
+        items2_list[[ell]]$to_post_id <- all_requested_posts[j]
       }
-    } # end: else
+      items_fin <- do.call('rbind', items2_list)
+      total_output[[j]] <- items_fin
+    }
     if (verbose) {
       cat('post', j, '(out of', num_posts, ') done\n')
     }
@@ -594,6 +600,7 @@ getUserWallComments <- function(user_id, num_posts = 'all', access_token, verbos
   fin <- proc.time()
   cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
   total_output <- do.call('rbind', total_output)
+  total_output$date <- as.Date(as.POSIXct(total_output$date, origin="1970-01-01"))
   return(total_output)
 }
 
@@ -696,14 +703,13 @@ getUserMostLikingUsers <- function(user_id, access_token, num_posts = 'all', num
 
 
 getUserPostReposts <- function(user_id, post_id, access_token) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&count=1000&need_likes=1&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token))
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&count=1000&v=5.68&extended=0&access_token=', access_token))
   if ('error' %in% names(fetched)) {
     stop(fetched$error$error_msg)
   }
   if (is.null(nrow(fetched$response$items))) {
     return(NULL)
   } else{ 
-    items <- fetched$response$items
     output <- data.frame('repost_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
                          'reposter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
                          'reposted_user_id' = user_id,
@@ -715,10 +721,56 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
                          'num_likes' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']['count']), NA, as.numeric(items[k, 'likes']['count']))), 
                          'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reposts']['count']), NA, as.numeric(items[k, 'reposts']['count']))), 
                          'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'views']['count']), NA, as.numeric(items[k, 'views']['count']))), stringsAsFactors = F)
-    if (nrow(output) == 0) {
+    
+    items <- fetched$response$items
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&offset=', nrow(items),'&count=1000&v=5.68&extended=0&access_token=', access_token))
+    items2 <- fetched$response$items
+    if (!is.null(nrow(items2))) {
+      output2 <- data.frame('repost_id' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'id']), NA, items2[k, 'id'])),
+                            'reposter_id' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'from_id']), NA, items2[k, 'from_id'])),
+                            'reposted_user_id' = user_id,
+                            'repost_of_post_id' = post_id,
+                            'receiver_id' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'to_id']), NA, items2[k, 'to_id'])),
+                            'date' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'date']), NA, items2[k, 'date'])),
+                            'text' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'text']), NA, items2[k, 'text'])),
+                            'num_comments' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'comments']['count']), NA, as.numeric(items2[k, 'comments']['count']))),
+                            'num_likes' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'likes']['count']), NA, as.numeric(items2[k, 'likes']['count']))), 
+                            'num_reposts' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'reposts']['count']), NA, as.numeric(items2[k, 'reposts']['count']))), 
+                            'num_views' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'views']['count']), NA, as.numeric(items2[k, 'views']['count']))), stringsAsFactors = F)
+      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&offset=', nrow(items) + nrow(items2),'&count=1000&v=5.68&extended=0&access_token=', access_token))
+      items3 <- fetched$response$items
+      
+      if (!is.null(nrow(items3))) {
+        output3 <- data.frame('repost_id' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'id']), NA, items3[k, 'id'])),
+                              'reposter_id' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'from_id']), NA, items3[k, 'from_id'])),
+                              'reposted_user_id' = user_id,
+                              'repost_of_post_id' = post_id,
+                              'receiver_id' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'to_id']), NA, items3[k, 'to_id'])),
+                              'date' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'date']), NA, items3[k, 'date'])),
+                              'text' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'text']), NA, items3[k, 'text'])),
+                              'num_comments' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'comments']['count']), NA, as.numeric(items3[k, 'comments']['count']))),
+                              'num_likes' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'likes']['count']), NA, as.numeric(items3[k, 'likes']['count']))), 
+                              'num_reposts' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'reposts']['count']), NA, as.numeric(items3[k, 'reposts']['count']))), 
+                              'num_views' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'views']['count']), NA, as.numeric(items3[k, 'views']['count']))), stringsAsFactors = F)
+      }
+    }
+    
+    if (is.null(nrow(items2))) {
+      output_fin <- output
+    } else {
+      if (is.null(nrow(items3))) {
+        output_fin <- rbind(output, output2)
+      } else {
+        output_fin <- rbind(output, output2, output3)
+      }
+    }
+    
+    output_fin <- output_fin[!duplicated(output_fin),]
+    
+    if (nrow(output_fin) == 0) {
       return(NULL)
     } else {
-      return(output)
+      return(output_fin)
     }
   }
 }
@@ -769,37 +821,59 @@ getUserWallReposts <- function(user_id, access_token, num_posts = 'all', verbose
     cat('Iterations started.\n')
   }
   for (j in 1:length(all_requested_posts)) {
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', all_requested_posts[j],'&need_likes=1&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token))
+    offset_count = 0
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', all_requested_posts[j],'&count=1000&need_likes=1&v=5.68&extended=0&access_token=', access_token))
     if ('error' %in% names(fetched)) {
-      cat('ERROR: ', fetched$error$error_msg, '\n')
-      return(NULL)
+      cat('ERROR in ', j, ':', fetched$error$error_msg, '\n')
+      Sys.sleep(1)
+      # return(NULL)
     } else {
       items <- fetched$response$items
-      if (!is.null(nrow(items))) {
-        total_output[[j]] <- data.frame('repost_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
-                                        'reposter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
-                                        'receiver_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'to_id']), NA, items[k, 'to_id'])),
-                                        'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
-                                        'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
-                                        'num_comments' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'comments']['count']), NA, as.numeric(items[k, 'comments']['count']))),
-                                        'num_likes' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']['count']), NA, as.numeric(items[k, 'likes']['count']))), 
-                                        'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reposts']['count']), NA, as.numeric(items[k, 'reposts']['count']))), 
-                                        'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'views']['count']), NA, as.numeric(items[k, 'views']['count'])))
-                                        , stringsAsFactors = F)
-        total_output[[j]]$reposted_user_id <- user_id
-        total_output[[j]]$repost_of_post_id <- all_requested_posts[j]
-      }
-    } # end: else
+      items2_list <- list()
+      items2_list[[1]] <- data.frame('repost_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
+                                     'reposter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
+                                     'receiver_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'to_id']), NA, items[k, 'to_id'])),
+                                     'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
+                                     'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
+                                     'num_comments' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'comments']['count']), NA, as.numeric(items[k, 'comments']['count']))),
+                                     'num_likes' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']['count']), NA, as.numeric(items[k, 'likes']['count']))), 
+                                     'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reposts']['count']), NA, as.numeric(items[k, 'reposts']['count']))), 
+                                     'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'views']['count']), NA, as.numeric(items[k, 'views']['count'])))
+                                     , stringsAsFactors = F)
+      items2_list[[1]]$user_id_wall <- user_id
+      items2_list[[1]]$to_post_id <- all_requested_posts[j]
+      
+      while (nrow(fetched$response$items) == 1000) {
+        # need to use offset
+        offset_count = offset_count + 1
+        fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', all_requested_posts[j],'&count=1000&offset=', offset_count * 1000,'&need_likes=1&v=5.68&extended=0&access_token=', access_token))
+        items <- fetched$response$items
+        items2_list[[offset_count + 1]] <- data.frame('repost_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
+                                                      'reposter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
+                                                      'receiver_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'to_id']), NA, items[k, 'to_id'])),
+                                                      'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
+                                                      'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
+                                                      'num_comments' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'comments']['count']), NA, as.numeric(items[k, 'comments']['count']))),
+                                                      'num_likes' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']['count']), NA, as.numeric(items[k, 'likes']['count']))), 
+                                                      'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reposts']['count']), NA, as.numeric(items[k, 'reposts']['count']))), 
+                                                      'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'views']['count']), NA, as.numeric(items[k, 'views']['count'])))
+                                                      , stringsAsFactors = F)
+        items2_list[[offset_count + 1]]$user_id_wall <- user_id
+        items2_list[[offset_count + 1]]$to_post_id <- all_requested_posts[j]
+      } # end while 
+      items_fin <- do.call('rbind', items2_list)
+      total_output[[j]] <- items_fin
+    } # end else not error
     if (verbose) {
       cat('post', j, '(out of', num_posts, ') done\n')
     }
     Sys.sleep(1)
-  } # end: for (j in 1:howmany)
+  } # end j
+  total_output <- do.call('rbind', total_output)
   fin <- proc.time()
   cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
-  total_output <- do.call('rbind', total_output)
   return(total_output)
-} # end: else below return(NULL)
+}
 
 
 getUserMostRepostingUsers <- function(user_id, access_token, num_posts = 'all', num_users = 'all', verbose = FALSE) {
@@ -1159,7 +1233,8 @@ getGroupPostComments <- function(group_id, post_id, access_token) {
 
 getGroupWallComments <- function(group_id, num_posts = 'all', access_token, verbose = FALSE) {
   #--- Get posts number and request the number of posts to retrieve
-  wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token))
+  #--- Get posts number and request the number of posts to retrieve
+  wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&v=5.68&extended=0&access_token=', access_token))
   if ('error' %in% names(wall)) {
     stop(wall$error$error_msg)
   }
@@ -1171,37 +1246,58 @@ getGroupWallComments <- function(group_id, num_posts = 'all', access_token, verb
     num_posts <- avail_posts
   } else {
     if (suppressWarnings(is.na(as.numeric(num_posts))) | num_posts <= 0) {
-      stop('Wrong number of posts: num_posts must be either "all" or numeric and positive')
+      stop('Wrong number of posts: num_posts must be either "all" or numeric')
     }
   }
   num_posts <- min(num_posts, avail_posts)
-  offsets <- 100 * 0:floor(wall$response$count/100)
+  if (verbose) {
+    cat(paste0('Retrieveing ', num_posts, ' requested post ids\n'))
+  }
+  if (num_posts <= 100) {
+    all_requested_posts <- wall$response$items$id
+    all_requested_posts <- all_requested_posts[1:num_posts]
+  } else {
+    all_requested_posts <- wall$response$items$id
+    offsets <- 100 * 1:floor(num_posts/100)
+    for (w in 1:length(offsets)) {
+      wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&offset=', offsets[w],'&v=5.68&extended=0&access_token=', access_token))
+      all_requested_posts <- c(all_requested_posts, wall$response$items$id)
+    }
+    all_requested_posts <- unique(all_requested_posts)
+    all_requested_posts <- all_requested_posts[1:num_posts]
+  }
   #--- Iteratively get comments for every requested post
   total_output <- list()
   st <- proc.time()
   if (verbose) {
     cat('Iterations started.\n')
   }
-  for (j in 1:num_posts) {
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', -group_id,'&post_id=', wall$response$items$id[j],'&need_likes=1&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token))
+  for (j in 1:length(all_requested_posts)) {
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', -group_id,'&post_id=', all_requested_posts[j],'&count=100&need_likes=1&v=5.68&extended=0&access_token=', access_token))
     if ('error' %in% names(fetched)) {
       cat('ERROR in ', j, ':', fetched$error$error_msg, '\n')
       Sys.sleep(1)
       # return(NULL)
     } else {
-      items <- fetched$response$items
-      if (!is.null(nrow(items))) {
-        total_output[[j]] <- data.frame('comment_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
-                                        'commenter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
-                                        'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
-                                        'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
-                                        'likes_count' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']), NA, as.numeric(items[k, 'likes']['count']))),
-                                        'reply_to_user' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reply_to_user']), NA, items[k, 'reply_to_user'])),
-                                        'reply_to_comment' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reply_to_comment']), NA, items[k, 'reply_to_comment'])), stringsAsFactors = F)
-        total_output[[j]]$user_id_wall <- group_id
-        total_output[[j]]$to_post_id <- wall$response$items$id[j]
+      cur_total_count <- fetched$response$count
+      newoffsets <- 100 * 0:floor(cur_total_count/100)
+      items2_list <- list()
+      ell = 1
+      for (ell in 1:length(newoffsets)) {
+        fetched2 <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', -group_id,'&post_id=', all_requested_posts[j],'&count=100&offset=', newoffsets[ell],'&need_likes=1&v=5.68&extended=0&access_token=', access_token))
+        items2_list[[ell]] <- data.frame('comment_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
+                                         'commenter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
+                                         'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
+                                         'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
+                                         'likes_count' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']), NA, as.numeric(items[k, 'likes']['count']))),
+                                         'reply_to_user' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reply_to_user']), NA, items[k, 'reply_to_user'])),
+                                         'reply_to_comment' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reply_to_comment']), NA, items[k, 'reply_to_comment'])), stringsAsFactors = F)
+        items2_list[[ell]]$user_id_wall <- -group_id
+        items2_list[[ell]]$to_post_id <- all_requested_posts[j]
       }
-    } # end: else
+      items2 <- do.call('rbind', items2_list)
+      total_output[[j]] <- items2
+    }
     if (verbose) {
       cat('post', j, '(out of', num_posts, ') done\n')
     }
@@ -1210,22 +1306,22 @@ getGroupWallComments <- function(group_id, num_posts = 'all', access_token, verb
   fin <- proc.time()
   cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
   total_output <- do.call('rbind', total_output)
+  total_output$date <- as.Date(as.POSIXct(total_output$date, origin="1970-01-01"))
   return(total_output)
 }
 
 
 getGroupPostReposts <- function(group_id, post_id, access_token) {
-  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', -group_id,'&post_id=', post_id,'&count=1000&need_likes=1&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token))
+  fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', -group_id,'&post_id=', post_id,'&count=1000&v=5.68&extended=0&access_token=', access_token))
   if ('error' %in% names(fetched)) {
     stop(fetched$error$error_msg)
-  } 
+  }
   if (is.null(nrow(fetched$response$items))) {
     return(NULL)
   } else{ 
-    items <- fetched$response$items
     output <- data.frame('repost_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
                          'reposter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
-                         'reposted_user_id' = group_id,
+                         'reposted_user_id' = -group_id,
                          'repost_of_post_id' = post_id,
                          'receiver_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'to_id']), NA, items[k, 'to_id'])),
                          'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
@@ -1234,10 +1330,56 @@ getGroupPostReposts <- function(group_id, post_id, access_token) {
                          'num_likes' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']['count']), NA, as.numeric(items[k, 'likes']['count']))), 
                          'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reposts']['count']), NA, as.numeric(items[k, 'reposts']['count']))), 
                          'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'views']['count']), NA, as.numeric(items[k, 'views']['count']))), stringsAsFactors = F)
-    if (nrow(output) == 0) {
+    
+    items <- fetched$response$items
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', -group_id,'&post_id=', post_id,'&offset=', nrow(items),'&count=1000&v=5.68&extended=0&access_token=', access_token))
+    items2 <- fetched$response$items
+    if (!is.null(nrow(items2))) {
+      output2 <- data.frame('repost_id' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'id']), NA, items2[k, 'id'])),
+                            'reposter_id' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'from_id']), NA, items2[k, 'from_id'])),
+                            'reposted_user_id' = -group_id,
+                            'repost_of_post_id' = post_id,
+                            'receiver_id' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'to_id']), NA, items2[k, 'to_id'])),
+                            'date' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'date']), NA, items2[k, 'date'])),
+                            'text' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'text']), NA, items2[k, 'text'])),
+                            'num_comments' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'comments']['count']), NA, as.numeric(items2[k, 'comments']['count']))),
+                            'num_likes' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'likes']['count']), NA, as.numeric(items2[k, 'likes']['count']))), 
+                            'num_reposts' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'reposts']['count']), NA, as.numeric(items2[k, 'reposts']['count']))), 
+                            'num_views' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'views']['count']), NA, as.numeric(items2[k, 'views']['count']))), stringsAsFactors = F)
+      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', -group_id,'&post_id=', post_id,'&offset=', nrow(items) + nrow(items2),'&count=1000&v=5.68&extended=0&access_token=', access_token))
+      items3 <- fetched$response$items
+      
+      if (!is.null(nrow(items3))) {
+        output3 <- data.frame('repost_id' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'id']), NA, items3[k, 'id'])),
+                              'reposter_id' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'from_id']), NA, items3[k, 'from_id'])),
+                              'reposted_user_id' = -group_id,
+                              'repost_of_post_id' = post_id,
+                              'receiver_id' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'to_id']), NA, items3[k, 'to_id'])),
+                              'date' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'date']), NA, items3[k, 'date'])),
+                              'text' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'text']), NA, items3[k, 'text'])),
+                              'num_comments' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'comments']['count']), NA, as.numeric(items3[k, 'comments']['count']))),
+                              'num_likes' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'likes']['count']), NA, as.numeric(items3[k, 'likes']['count']))), 
+                              'num_reposts' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'reposts']['count']), NA, as.numeric(items3[k, 'reposts']['count']))), 
+                              'num_views' = sapply(1:nrow(items3), function(k) ifelse(is.null(items3[k, 'views']['count']), NA, as.numeric(items3[k, 'views']['count']))), stringsAsFactors = F)
+      }
+    }
+    
+    if (is.null(nrow(items2))) {
+      output_fin <- output
+    } else {
+      if (is.null(nrow(items3))) {
+        output_fin <- rbind(output, output2)
+      } else {
+        output_fin <- rbind(output, output2, output3)
+      }
+    }
+    
+    output_fin <- output_fin[!duplicated(output_fin),]
+    
+    if (nrow(output_fin) == 0) {
       return(NULL)
     } else {
-      return(output)
+      return(output_fin)
     }
   }
 }
@@ -1245,7 +1387,7 @@ getGroupPostReposts <- function(group_id, post_id, access_token) {
 
 getGroupWallReposts <- function(group_id, access_token, num_posts = 'all', verbose = FALSE) {
   #--- Get posts number and request the number of posts to retrieve
-  wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token))
+  wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=1000&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token))
   if ('error' %in% names(wall)) {
     stop(wall$error$error_msg)
   }
@@ -1257,65 +1399,89 @@ getGroupWallReposts <- function(group_id, access_token, num_posts = 'all', verbo
     num_posts <- avail_posts
   } else {
     if (suppressWarnings(is.na(as.numeric(num_posts))) | num_posts <= 0) {
-      stop('Wrong number of posts: num_posts must be either "all" or numeric and positive')
+      stop('Wrong number of posts: num_posts must be either "all" or numeric')
     }
   }
   num_posts <- min(num_posts, avail_posts)
-  #--- Get all requested posts
+  #--- Get all requested post ids
   if (verbose) {
-    cat('Retrieveing all requested posts\n')
+    cat('Retrieveing all requested post ids\n')
   }
   if (num_posts <= 100) {
     all_requested_posts <- wall$response$items$id
+    all_requested_posts <- all_requested_posts[1:num_posts]
   } else {
     all_requested_posts <- wall$response$items$id
     offsets <- 100 * 1:floor(num_posts/100)
     for (w in 1:length(offsets)) {
-      wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&offset=', offsets[w],'&v=5.64&extended=0&access_token=', access_token))
+      wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&offset=', offsets[w],'&v=5.68&extended=0&access_token=', access_token))
       all_requested_posts <- c(all_requested_posts, wall$response$items$id)
     }
     all_requested_posts <- unique(all_requested_posts)
+    all_requested_posts <- all_requested_posts[1:num_posts]
   }
   if (verbose) {
-    cat('All requested posts retrieved\n')
+    cat('All requested post ids retrieved\n')
   }
-    #--- Iteratively get reposts for every requested post
-    total_output <- list()
-    st <- proc.time()
-    if (verbose) {
-      cat('Iterations started.\n')
-    }
-    for (j in 1:num_posts) {
-      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', -group_id,'&post_id=', wall$response$items$id[j],'&need_likes=1&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.64&extended=0&access_token=', access_token))
-      if ('error' %in% names(fetched)) {
-        cat('ERROR: ', fetched$error$error_msg, '\n')
-        return(NULL)
-      } else {
-        items <- fetched$response$items
-        if (!is.null(nrow(items))) {
-          total_output[[j]] <- data.frame('repost_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
-                                          'reposter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
-                                          'receiver_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'to_id']), NA, items[k, 'to_id'])),
-                                          'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
-                                          'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
-                                          'num_comments' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'comments']['count']), NA, as.numeric(items[k, 'comments']['count']))),
-                                          'num_likes' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']['count']), NA, as.numeric(items[k, 'likes']['count']))), 
-                                          'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reposts']['count']), NA, as.numeric(items[k, 'reposts']['count']))), 
-                                          'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'views']['count']), NA, as.numeric(items[k, 'views']['count'])))
-                                          , stringsAsFactors = F)
-          total_output[[j]]$reposted_user_id <- group_id
-          total_output[[j]]$repost_of_post_id <- wall$response$items$id[j]
-        }
-      } # end: else
-      if (verbose) {
-        cat('post', j, '(out of', num_posts, ') done\n')
-      }
+  #--- Iteratively get reposts for every requested post
+  total_output <- list()
+  st <- proc.time()
+  if (verbose) {
+    cat('Iterations started.\n')
+  }
+  for (j in 1:length(all_requested_posts)) {
+    offset_count = 0
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', -group_id,'&post_id=', all_requested_posts[j],'&count=1000&need_likes=1&v=5.68&extended=0&access_token=', access_token))
+    if ('error' %in% names(fetched)) {
+      cat('ERROR in ', j, ':', fetched$error$error_msg, '\n')
       Sys.sleep(1)
-    } # end: for (j in 1:num_posts)
-    fin <- proc.time()
-    cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
-    total_output <- do.call('rbind', total_output)
-    return(total_output)
+      # return(NULL)
+    } else {
+      items <- fetched$response$items
+      items2_list <- list()
+      items2_list[[1]] <- data.frame('repost_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
+                                     'reposter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
+                                     'receiver_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'to_id']), NA, items[k, 'to_id'])),
+                                     'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
+                                     'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
+                                     'num_comments' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'comments']['count']), NA, as.numeric(items[k, 'comments']['count']))),
+                                     'num_likes' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']['count']), NA, as.numeric(items[k, 'likes']['count']))), 
+                                     'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reposts']['count']), NA, as.numeric(items[k, 'reposts']['count']))), 
+                                     'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'views']['count']), NA, as.numeric(items[k, 'views']['count'])))
+                                     , stringsAsFactors = F)
+      items2_list[[1]]$user_id_wall <- -group_id
+      items2_list[[1]]$to_post_id <- all_requested_posts[j]
+      
+      while (nrow(fetched$response$items) == 1000) {
+        # need to use offset
+        offset_count = offset_count + 1
+        fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', -group_id,'&post_id=', all_requested_posts[j],'&count=1000&offset=', offset_count * 1000,'&need_likes=1&v=5.68&extended=0&access_token=', access_token))
+        items <- fetched$response$items
+        items2_list[[offset_count + 1]] <- data.frame('repost_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
+                                                      'reposter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
+                                                      'receiver_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'to_id']), NA, items[k, 'to_id'])),
+                                                      'date' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'date']), NA, items[k, 'date'])),
+                                                      'text' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'text']), NA, items[k, 'text'])),
+                                                      'num_comments' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'comments']['count']), NA, as.numeric(items[k, 'comments']['count']))),
+                                                      'num_likes' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'likes']['count']), NA, as.numeric(items[k, 'likes']['count']))), 
+                                                      'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reposts']['count']), NA, as.numeric(items[k, 'reposts']['count']))), 
+                                                      'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'views']['count']), NA, as.numeric(items[k, 'views']['count'])))
+                                                      , stringsAsFactors = F)
+        items2_list[[offset_count + 1]]$user_id_wall <- -group_id
+        items2_list[[offset_count + 1]]$to_post_id <- all_requested_posts[j]
+      } # end while 
+      items_fin <- do.call('rbind', items2_list)
+      total_output[[j]] <- items_fin
+    } # end else not error
+    if (verbose) {
+      cat('post', j, '(out of', num_posts, ') done\n')
+    }
+    Sys.sleep(1)
+  } # end j
+  total_output <- do.call('rbind', total_output)
+  fin <- proc.time()
+  cat('Total time:', as.numeric((fin-st)[3]/60), 'minutes\n')
+  return(total_output)
 }
 
 
