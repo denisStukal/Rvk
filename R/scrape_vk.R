@@ -723,7 +723,7 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
                          'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reposts']['count']), NA, as.numeric(items[k, 'reposts']['count']))), 
                          'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'views']['count']), NA, as.numeric(items[k, 'views']['count']))), stringsAsFactors = F)
     
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&offset=', nrow(items),'&count=1000&v=5.68&extended=0&access_token=', access_token))
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&offset=', nrow(items)+1,'&count=1000&v=5.68&extended=0&access_token=', access_token))
     items2 <- fetched$response$items
     if (!is.null(nrow(items2))) {
       output2 <- data.frame('repost_id' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'id']), NA, items2[k, 'id'])),
@@ -737,7 +737,7 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
                             'num_likes' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'likes']['count']), NA, as.numeric(items2[k, 'likes']['count']))), 
                             'num_reposts' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'reposts']['count']), NA, as.numeric(items2[k, 'reposts']['count']))), 
                             'num_views' = sapply(1:nrow(items2), function(k) ifelse(is.null(items2[k, 'views']['count']), NA, as.numeric(items2[k, 'views']['count']))), stringsAsFactors = F)
-      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&offset=', nrow(items) + nrow(items2),'&count=1000&v=5.68&extended=0&access_token=', access_token))
+      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&offset=', nrow(items) + nrow(items2) +1,'&count=1000&v=5.68&extended=0&access_token=', access_token))
       items3 <- fetched$response$items
       
       if (!is.null(nrow(items3))) {
