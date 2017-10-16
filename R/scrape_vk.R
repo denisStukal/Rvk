@@ -710,6 +710,7 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
   if (is.null(nrow(fetched$response$items))) {
     return(NULL)
   } else{ 
+    items <- fetched$response$items
     output <- data.frame('repost_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'id']), NA, items[k, 'id'])),
                          'reposter_id' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'from_id']), NA, items[k, 'from_id'])),
                          'reposted_user_id' = user_id,
@@ -722,7 +723,6 @@ getUserPostReposts <- function(user_id, post_id, access_token) {
                          'num_reposts' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'reposts']['count']), NA, as.numeric(items[k, 'reposts']['count']))), 
                          'num_views' = sapply(1:nrow(items), function(k) ifelse(is.null(items[k, 'views']['count']), NA, as.numeric(items[k, 'views']['count']))), stringsAsFactors = F)
     
-    items <- fetched$response$items
     fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getReposts?owner_id=', user_id,'&post_id=', post_id,'&offset=', nrow(items),'&count=1000&v=5.68&extended=0&access_token=', access_token))
     items2 <- fetched$response$items
     if (!is.null(nrow(items2))) {
