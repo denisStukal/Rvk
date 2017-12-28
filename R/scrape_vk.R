@@ -467,10 +467,8 @@ getUserWall <- function(user_id, access_token, num_posts = 'all', verbose = FALS
   if ('error' %in% names(wall)) {
     stop(wall$error$error_msg, '\n')
   } 
-  if (num_posts != 'all') {
-    if (suppressWarnings(is.na(as.numeric(num_posts)))) {
-      stop('Wrong number of posts: num_posts must be numeric')
-    }
+  if (num_posts != 'all' & suppressWarnings(is.na(as.numeric(num_posts)))) {
+    stop('Wrong number of posts: num_posts must be numeric')
   }
   avail_posts <- wall$response$count
   if (num_posts == 'all') {
