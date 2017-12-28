@@ -1164,7 +1164,7 @@ getGroupInfo <- function(group_id, access_token, links = TRUE) {
 
 
 getGroupWall <- function(group_id, access_token, num_posts = 'all', verbose = FALSE) {
-  if (suppressWarnings(is.na(as.numeric(group_id))) | group_id <= 0) {
+  if (num_posts!='all' & (suppressWarnings(is.na(as.numeric(group_id))) | group_id <= 0)) {
     stop('Error in group id: group_id can only be numeric and positive')
   }
   wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', -group_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token))
