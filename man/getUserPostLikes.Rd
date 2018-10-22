@@ -15,7 +15,7 @@ Returns a vector of user IDs who liked a post on a user's page.
 
 
 \usage{
-getUserPostLikes(user_id, post_id, access_token)
+getUserPostLikes(user_id, post_id, access_token, offset = 0)
 }
 
 
@@ -23,6 +23,7 @@ getUserPostLikes(user_id, post_id, access_token)
   \item{user_id}{A numeric user ID. Available from the user's page (see Details).}
   \item{post_id}{A numeric ID of a post on a user's page.}
   \item{access_token}{Your access token (see ?makeAccessToken).}
+  \item{offset}{ Number of the output element to start scraping from. }
 }
 
 

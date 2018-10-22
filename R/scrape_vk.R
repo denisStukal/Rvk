@@ -317,7 +317,7 @@ getUserFollowersNum <- function(user_id, access_token) {
 }
 
 
-getUserFollowersInfo <- function(user_id, access_token, offset) {
+getUserFollowersInfo <- function(user_id, access_token, offset = 0) {
   fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/users.getFollowers?user_id=', user_id,'&count=1000&fields=sex,bdate,city,country,photo_100,lists,domain,has_mobile,contacts,connections,site,education,universities,schools,can_see_all_posts,status,last_seen,common_count,relation,relatives&v=5.68&access_token=', access_token, '&offset=', offset))
   if ('error' %in% names(fetched)) {
     stop(fetched$error$error_msg)
@@ -499,7 +499,7 @@ getUserWall <- function(user_id, access_token, num_posts = 'all', verbose = FALS
 }
 
 
-getUserPostComments <- function(user_id, post_id, access_token, offset) {
+getUserPostComments <- function(user_id, post_id, access_token, offset = 0) {
   fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.getComments?owner_id=', user_id,'&post_id=', post_id,'&count=100&need_likes=1&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token,'&offset=', offset))
   if ('error' %in% names(fetched)) {
     stop(fetched$error$error_msg)
@@ -526,7 +526,7 @@ getUserPostComments <- function(user_id, post_id, access_token, offset) {
 }
 
 
-getUserWallComments <- function(user_id, num_posts = 'all', access_token, verbose = FALSE, offset) {
+getUserWallComments <- function(user_id, num_posts = 'all', access_token, verbose = FALSE, offset = 0) {
   #--- Get posts number and request the number of posts to retrieve
   wall <- jsonlite::fromJSON(paste0('https://api.vk.com/method/wall.get?owner_id=', user_id,'&count=100&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token,'&offset=',offset))
   if ('error' %in% names(wall)) {
@@ -605,7 +605,7 @@ getUserWallComments <- function(user_id, num_posts = 'all', access_token, verbos
 }
 
 
-getUserPostLikes <- function(user_id, post_id, access_token, offset) {
+getUserPostLikes <- function(user_id, post_id, access_token, offset = 0) {
   fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/likes.getList?type=post&owner_id=', user_id,'&item_id=', post_id,'&count=1000&fields=sex,bdate,city,country,timezone,photo_100,has_mobile,contacts,education,online,relation,last_seen,status,can_write_private_message,can_see_all_posts,can_post,universities&v=5.68&extended=0&access_token=', access_token,'&offset=', offset))
   if ('error' %in% names(fetched)) {
     stop(fetched$error$error_msg)

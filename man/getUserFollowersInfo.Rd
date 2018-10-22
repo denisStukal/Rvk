@@ -15,13 +15,14 @@ Returns a data.frame with publicly available information about followers of a us
 
 
 \usage{
-getUserFollowersInfo(user_id, access_token)
+getUserFollowersInfo(user_id, access_token, offset = 0)
 }
 
 
 \arguments{
   \item{user_id}{A numeric id for the user whose followers are requested. Available from the user's page (see Details).}
   \item{access_token}{ Your access token (see ?makeAccessToken). }
+  \item{offset}{ Number of the output element to start scraping from. }
 }
 
 

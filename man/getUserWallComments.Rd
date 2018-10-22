@@ -15,7 +15,7 @@ Returns a data.frame with information about comments to posts on a user page.
 
 
 \usage{
-getUserWallComments(user_id, num_posts = 'all', access_token, verbose = FALSE)
+getUserWallComments(user_id, num_posts = 'all', access_token, verbose = FALSE, offset = 0)
 }
 
 
@@ -24,6 +24,7 @@ getUserWallComments(user_id, num_posts = 'all', access_token, verbose = FALSE)
   \item{num_posts}{Number of posts to consider. Either 'all' (default) or a positive integer.}
   \item{access_token}{ Your access token (see ?makeAccessToken).}
   \item{verbose}{Boolean: if FALSE (default), informational messages are suppressed.}
+  \item{offset}{ Number of the output element to start scraping from. }
 }
 
 

@@ -15,7 +15,7 @@ Returns a data.frame with publicly available information on comments to a post.
 
 
 \usage{
-getUserPostComments(user_id, post_id, access_token)
+getUserPostComments(user_id, post_id, access_token, offset = 0)
 }
 
 
@@ -24,6 +24,7 @@ getUserPostComments(user_id, post_id, access_token)
   \item{user_id}{ A numeric ID of the user comments to whose post are requested. Available from the user's page (see Details). }
   \item{post_id}{ A numeric ID of the post comments to which are requested. }
   \item{access_token}{ Your access token (see ?makeAccessToken). }
+  \item{offset}{ Number of the output element to start scraping from. }
 }
 
 
