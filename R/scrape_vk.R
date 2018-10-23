@@ -1758,18 +1758,18 @@ searchGroupWall <- function(group_id, query, access_token, verbose = FALSE) {
 searchNewsfeed <- function(query, access_token, start_time = NULL, end_time = NULL, verbose = FALSE) {
   total_output <- NULL
   if (is.null(start_time) | is.null(end_time)) {
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?v=5.87&q=', query,'&count=100&&access_token=', access_token))
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?v=5.12&q=', query,'&count=200&&access_token=', access_token))
   } else {
     start_time <- as.numeric(as.POSIXlt(start_time, tz = 'GMT'))
     end_time <- as.numeric(as.POSIXlt(end_time, tz = 'GMT'))
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&start_time=', start_time,'&end_time=', end_time,'&count=100&access_token=', access_token))
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&start_time=', start_time,'&end_time=', end_time,'&count=200&access_token=', access_token))
   }
   if ('error' %in% names(fetched)) {
     stop(fetched$error$error_msg)
   }
+  names(fetched$response)
   avail_posts <- fetched$response$count
-  offsets <- 100 * 0:floor(avail_posts/100)
-  #cat(avail_posts)
+  offsets <- 200 * 0:floor(avail_posts/200)
   st <- proc.time()
   if (verbose) {
     cat('Total:', length(offsets) ,' iterations. Iterations started.\n')
@@ -1779,41 +1779,46 @@ searchNewsfeed <- function(query, access_token, start_time = NULL, end_time = NU
       cat('Iteration', j, '\n')
     }
     if (is.null(start_time) | is.null(end_time)) {
-      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?v=5.87&q=', query,'&offset=', offsets[j],'&count=100&access_token=', access_token))
+      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?v=5.12&q=', query,'&offset=', offsets[j],'&count=200&access_token=', access_token))
     } else {
-      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?v=5.87&q=', query,'&offset=', offsets[j], '&start_time=', start_time,'&end_time=', end_time,'&count=100&access_token=', access_token))
+      fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?v=5.12&q=', query,'&offset=', offsets[j], '&start_time=', start_time,'&end_time=', end_time,'&count=200&access_token=', access_token))
     }
-    if (j == 1 & length(fetched$response) > 1) {
-      total_output <- lapply(2:length(fetched$response), function(k) data.frame('from_id' = fetched$response[[k]]$from_id, 'object_id' = fetched$response[[k]]$id,
-                                                                                'post_type' = fetched$response[[k]]$post_type, 'text' = fetched$response[[k]]$text, 'date' = fetched$response[[k]]$date, 
-                                                                                'photo_id' = ifelse(!is.null(fetched$response[[k]]$attachment$photo$pid), fetched$response[[k]]$attachment$photo$pid, NA),
-                                                                                'photo_link' = ifelse(!is.null(fetched$response[[k]]$attachment$photo$src_xbig), fetched$response[[k]]$attachment$photo$src_xbig, NA),
-                                                                                'photo_text' = ifelse(!is.null(fetched$response[[k]]$attachment$photo$text), fetched$response[[k]]$attachment$photo$text, NA),
-                                                                                'link_url' = ifelse(!is.null(fetched$response[[k]]$attachment$link$url), fetched$response[[k]]$attachment$link$url, NA),
-                                                                                'link_title' = ifelse(!is.null(fetched$response[[k]]$attachment$link$title), fetched$response[[k]]$attachment$link$title, NA),
-                                                                                'link_image' = ifelse(!is.null(fetched$response[[k]]$attachment$link$image), fetched$response[[k]]$attachment$link$image, NA),
-                                                                                'video_title' = ifelse(!is.null(fetched$response[[k]]$attachment$video$title), fetched$response[[k]]$attachment$video$title, NA),
-                                                                                'video_description' = ifelse(!is.null(fetched$response[[k]]$attachment$video$description), fetched$response[[k]]$attachment$video$description, NA),
-                                                                                'video_image' = ifelse(!is.null(fetched$response[[k]]$attachment$video$image_xbig), fetched$response[[k]]$attachment$video$image_xbig, NA),
-                                                                                'video_id' = ifelse(!is.null(fetched$response[[k]]$attachment$video$vid), fetched$response[[k]]$attachment$video$vid, NA),
-                                                                                stringsAsFactors = F))
-      total_output <- do.call('rbind', total_output)
+    if (j == 1 & length(fetched$response$items) > 1) {
+      total_output <- data.frame('from_id' = fetched$response$items$from_id, 
+                                 'object_id' = fetched$response$items$id,
+                                 'post_type' = fetched$response$items$post_type, 
+                                 'text' = fetched$response$items$text, 
+                                 'date' = fetched$response$items$date, 
+                                 'photo_id' = ifelse(!is.null(fetched$response$items$attachment$photo$pid), fetched$response$items$attachment$photo$pid, NA),
+                                 'photo_link' = ifelse(!is.null(fetched$response$items$attachment$photo$src_xbig), fetched$response$items$attachment$photo$src_xbig, NA),
+                                 'photo_text' = ifelse(!is.null(fetched$response$items$attachment$photo$text), fetched$response$items$attachment$photo$text, NA),
+                                 'link_url' = ifelse(!is.null(fetched$response$items$attachment$link$url), fetched$response$items$attachment$link$url, NA),
+                                 'link_title' = ifelse(!is.null(fetched$response$items$attachment$link$title), fetched$response$items$attachment$link$title, NA),
+                                 'link_image' = ifelse(!is.null(fetched$response$items$attachment$link$image), fetched$response$items$attachment$link$image, NA),
+                                 'video_title' = ifelse(!is.null(fetched$response$items$attachment$video$title), fetched$response$items$attachment$video$title, NA),
+                                 'video_description' = ifelse(!is.null(fetched$response$items$attachment$video$description), fetched$response$items$attachment$video$description, NA),
+                                 'video_image' = ifelse(!is.null(fetched$response$items$attachment$video$image_xbig), fetched$response$items$attachment$video$image_xbig, NA),
+                                 'video_id' = ifelse(!is.null(fetched$response$items$attachment$video$vid), fetched$response$items$attachment$video$vid, NA),
+                                 stringsAsFactors = F)
     } else {
-      if (length(fetched$response) > 1) {
-        output <- lapply(2:length(fetched$response), function(k) data.frame('from_id' = fetched$response[[k]]$from_id, 'object_id' = fetched$response[[k]]$id,
-                                                                            'post_type' = fetched$response[[k]]$post_type, 'text' = fetched$response[[k]]$text, 'date' = fetched$response[[k]]$date, 
-                                                                            'photo_id' = ifelse(!is.null(fetched$response[[k]]$attachment$photo$pid), fetched$response[[k]]$attachment$photo$pid, NA),
-                                                                            'photo_link' = ifelse(!is.null(fetched$response[[k]]$attachment$photo$src_xbig), fetched$response[[k]]$attachment$photo$src_xbig, NA),
-                                                                            'photo_text' = ifelse(!is.null(fetched$response[[k]]$attachment$photo$text), fetched$response[[k]]$attachment$photo$text, NA),
-                                                                            'link_url' = ifelse(!is.null(fetched$response[[k]]$attachment$link$url), fetched$response[[k]]$attachment$link$url, NA),
-                                                                            'link_title' = ifelse(!is.null(fetched$response[[k]]$attachment$link$title), fetched$response[[k]]$attachment$link$title, NA),
-                                                                            'link_image' = ifelse(!is.null(fetched$response[[k]]$attachment$link$image), fetched$response[[k]]$attachment$link$image, NA),
-                                                                            'video_title' = ifelse(!is.null(fetched$response[[k]]$attachment$video$title), fetched$response[[k]]$attachment$video$title, NA),
-                                                                            'video_description' = ifelse(!is.null(fetched$response[[k]]$attachment$video$description), fetched$response[[k]]$attachment$video$description, NA),
-                                                                            'video_image' = ifelse(!is.null(fetched$response[[k]]$attachment$video$image_xbig), fetched$response[[k]]$attachment$video$image_xbig, NA),
-                                                                            'video_id' = ifelse(!is.null(fetched$response[[k]]$attachment$video$vid), fetched$response[[k]]$attachment$video$vid, NA),
-                                                                            stringsAsFactors = F))
-        output <- do.call('rbind', output)
+      if (length(fetched$response$items) > 1) {
+        output <- data.frame('from_id' = fetched$response$items$from_id, 
+                             'object_id' = fetched$response$items$id,
+                             'post_type' = fetched$response$items$post_type, 
+                             'text' = fetched$response$items$text, 
+                             'date' = fetched$response$items$date, 
+                             'photo_id' = ifelse(!is.null(fetched$response$items$attachment$photo$pid), fetched$response$items$attachment$photo$pid, NA),
+                             'photo_link' = ifelse(!is.null(fetched$response$items$attachment$photo$src_xbig), fetched$response$items$attachment$photo$src_xbig, NA),
+                             'photo_text' = ifelse(!is.null(fetched$response$items$attachment$photo$text), fetched$response$items$attachment$photo$text, NA),
+                             'link_url' = ifelse(!is.null(fetched$response$items$attachment$link$url), fetched$response$items$attachment$link$url, NA),
+                             'link_title' = ifelse(!is.null(fetched$response$items$attachment$link$title), fetched$response$items$attachment$link$title, NA),
+                             'link_image' = ifelse(!is.null(fetched$response$items$attachment$link$image), fetched$response$items$attachment$link$image, NA),
+                             'video_title' = ifelse(!is.null(fetched$response$items$attachment$video$title), fetched$response$items$attachment$video$title, NA),
+                             'video_description' = ifelse(!is.null(fetched$response$items$attachment$video$description), fetched$response$items$attachment$video$description, NA),
+                             'video_image' = ifelse(!is.null(fetched$response$items$attachment$video$image_xbig), fetched$response$items$attachment$video$image_xbig, NA),
+                             'video_id' = ifelse(!is.null(fetched$response$items$attachment$video$vid), fetched$response$items$attachment$video$vid, NA),
+                             stringsAsFactors = F)
+        
         total_output <- rbind(total_output, output)
       }
     }
