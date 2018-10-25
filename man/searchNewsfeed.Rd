@@ -53,7 +53,9 @@ Denis Stukal \url{denis.stukal@nyu.edu}
 \examples{
 \dontrun{
 mytoken = 'XXXXXXXXXXXXXX'
-newposts <- searchNewsfeed(query = 'moscow', access_token = mytoken)
+newposts <- searchNewsfeed(query = 'moscow', access_token = mytoken,
+                            start_time = '2018-04-22 00:00:00', 
+                            end_time = '2018-05-02 23:00:00')
 str(newposts)
 }
 }

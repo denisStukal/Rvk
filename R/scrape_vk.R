@@ -1762,12 +1762,11 @@ searchNewsfeed <- function(query, access_token, start_time = NULL, end_time = NU
   } else {
     start_time <- as.numeric(as.POSIXlt(start_time, tz = 'GMT'))
     end_time <- as.numeric(as.POSIXlt(end_time, tz = 'GMT'))
-    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?q=', query,'&start_time=', start_time,'&end_time=', end_time,'&count=200&access_token=', access_token))
+    fetched <- jsonlite::fromJSON(paste0('https://api.vk.com/method/newsfeed.search?v=5.12&q=', query,'&start_time=', start_time,'&end_time=', end_time,'&count=200&access_token=', access_token))
   }
   if ('error' %in% names(fetched)) {
     stop(fetched$error$error_msg)
   }
-  names(fetched$response)
   avail_posts <- fetched$response$count
   offsets <- 200 * 0:floor(avail_posts/200)
   st <- proc.time()
